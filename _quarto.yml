@@ -1,0 +1,29 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Corsi Isn't Enough"
+  description: 'NHL analytics beyond the surface — per-60 metrics, score-state stratification, and the math underneath the game.'
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: posts/
+        text: Posts
+      - href: about.qmd
+        text: About
+    right:
+      - icon: github
+        href: https://github.com/corsi-isnt-enough/nhl-analytics
+      - icon: substack
+        href: https://corsiistenough.substack.com # add once created
+
+format:
+  html:
+    theme: darkly # dark theme — fits hockey aesthetics well
+    highlight-style: dracula
+    code-fold: true # notebook cells are collapsible
+    code-tools: true
+    toc: true
+    math: mathjax # full LaTeX rendering
