@@ -266,13 +266,6 @@
     "text": "10. Export\n\n\nCode\nstr_df.to_csv(f'nhl_str_{SEASON}.csv', index=False)\npp_agg.to_csv(f'nhl_pp_by_bucket_{SEASON}.csv', index=False)\npk_agg.to_csv(f'nhl_pk_by_bucket_{SEASON}.csv', index=False)\nraw_df.to_csv(f'nhl_raw_penalty_windows_{SEASON}.csv', index=False)\n\nprint('Exported:')\nprint(f'  nhl_str_{SEASON}.csv              — composite ratings')\nprint(f'  nhl_pp_by_bucket_{SEASON}.csv     — PP metrics by score bucket')\nprint(f'  nhl_pk_by_bucket_{SEASON}.csv     — PK metrics by score bucket')\nprint(f'  nhl_raw_penalty_windows_{SEASON}.csv  — raw penalty window events')\n\n\nExported:\n  nhl_str_20242025.csv              — composite ratings\n  nhl_pp_by_bucket_20242025.csv     — PP metrics by score bucket\n  nhl_pk_by_bucket_20242025.csv     — PK metrics by score bucket\n  nhl_raw_penalty_windows_20242025.csv  — raw penalty window events"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Corsi Isn't Enough",
-    "section": "",
-    "text": "# Corsi Isn’t Enough"
-  },
-  {
     "objectID": "index.html#the-philosophy",
     "href": "index.html#the-philosophy",
     "title": "Corsi Isn't Enough",
