@@ -1,5 +1,59 @@
 ---
-title: "About"
+title: ""
+page-layout: full
+toc: false
 ---
 
-About this site
+# About
+
+I'm Buddy — an analytics and data professional by day, hockey obsessive by night.
+
+I've spent my career building data pipelines, models, and frameworks that turn
+messy raw data into something actionable. At some point I realized I was doing
+the same thing on weekends, except the data was NHL play-by-play and the
+stakeholders were entirely imaginary.
+
+That's where this site came from.
+
+---
+
+## Why This Exists
+
+Hockey analytics has made real progress over the past decade. Corsi normalized
+shot attempts. Expected goals added context to those attempts. Score-state
+adjustments made both metrics more honest. Each generation of work built on the
+last by asking the same question: *what is the current metric not capturing?*
+
+That's the question I keep asking. Not because the existing metrics are wrong,
+but because every aggregation hides a distribution — and the distribution is
+usually where the interesting stuff lives.
+
+The frameworks I build here start from raw play-by-play, do the math from
+scratch, and try to be explicit about every assumption along the way. If
+something is arbitrary, I'll say so. If a metric has a known limitation, it'll
+be in the post. The goal is analysis you can actually argue with.
+
+---
+
+## The Work
+
+Everything on this site is open. The notebooks, the data pipelines, the
+formulas — all of it lives on [GitHub](https://github.com/corsi-isnt-enough/nhl-analytics)
+and is free to fork, critique, and build on. If you find a flaw in the
+methodology, I want to know about it.
+
+Current projects:
+
+- **Special Teams Rating (STR)** — a per-60, score-state-adjusted replacement
+  for PP% and PK%
+- **Sequence-Based Consistency Metrics** — measuring how teams behave across
+  a season, not just in aggregate
+
+---
+
+## Get In Touch
+
+The best way to engage is through GitHub — open an issue, submit a PR, or
+just fork the repo and take it somewhere new.
+
+*More frameworks in progress. Check back.*
