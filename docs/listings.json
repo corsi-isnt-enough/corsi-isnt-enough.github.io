@@ -2,6 +2,7 @@
   {
     "listing": "/posts/index.html",
     "items": [
+      "/posts/sequence-metrics/index.html",
       "/posts/str-framework/index.html"
     ]
   }
