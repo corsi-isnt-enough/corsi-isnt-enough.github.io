@@ -9,15 +9,15 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "",
+    "title": "Corsi Isn’t Enough",
     "section": "",
-    "text": "Code"
+    "text": "If you’ve spent any time in hockey analytics, you know the surface stats. Corsi. Fenwick. PP%. PDO. They’re useful — but they’re also incomplete, and in some cases quietly misleading.\nThis site exists because the interesting questions start after you’ve exhausted what the box score can tell you.\nI’m Buddy. I build hockey analytics frameworks from scratch — pulling directly from the NHL API, doing the math by hand, and writing up what I find. The work here leans quantitative: expect per-60 measurements, score-state stratification, sequence analysis, and a lot of Python. If you’re comfortable with WAR, xG, and the idea that context matters, you’ll feel at home.\n\n\n\n\nGood analytics should be reproducible, explainable, and honest about its assumptions. Every post includes the math, the code, and the reasoning. Nothing is a black box.\nAll notebooks and source code are open on GitHub — fork them, critique them, build on them.\n\nHead to Posts to see what’s been published."
   },
   {
     "objectID": "index.html#the-philosophy",
     "href": "index.html#the-philosophy",
-    "title": "",
-    "section": "The Philosophy",
-    "text": "The Philosophy\nGood analytics should be reproducible, explainable, and honest about its assumptions. Every post includes the math, the code, and the reasoning. Nothing is a black box.\nAll notebooks and source code are open on GitHub — fork them, critique them, build on them.\n\nHead to Posts to see what’s been published."
+    "title": "Corsi Isn’t Enough",
+    "section": "",
+    "text": "Good analytics should be reproducible, explainable, and honest about its assumptions. Every post includes the math, the code, and the reasoning. Nothing is a black box.\nAll notebooks and source code are open on GitHub — fork them, critique them, build on them.\n\nHead to Posts to see what’s been published."
   }
 ]

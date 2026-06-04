@@ -1,6 +1,8 @@
 ---
 title: ""
 page-layout: full
+toc: false
+code-tools: false
 ---
 
 # Corsi Isn't Enough
