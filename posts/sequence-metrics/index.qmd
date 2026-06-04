@@ -6,6 +6,8 @@ description: "What if we stopped measuring what teams accumulate and started mea
 toc: true
 code-fold: true
 code-tools: true
+execute:
+  enabled: false
 ---
 
 ## A Different Question
@@ -91,10 +93,18 @@ $$
 P(\text{descent}) = \frac{1}{3}, \quad E[\text{descents}] = 81 \times \frac{1}{3} = 27.0
 $$
 
-In practice, the empirical distribution is not uniform — wins are more common
-than regulation losses, which are more common than OTL results. The pooled
-baseline uses the actual empirical probabilities across all 14 seasons rather
-than the uniform assumption. This gives a more honest z-score comparison.
+The empirical 2024-25 distribution is not uniform. Wins are the most common outcome
+($p_2 = 0.503$), regulation losses are next ($p_0 = 0.383$), and OT/SO losses
+are the least common ($p_1 = 0.114$). Plugging those values in:
+
+$$
+P(\text{descent}) = 0.2937, \quad E[\text{descents}] = 23.79, \quad \sigma = 4.10
+$$
+
+This is meaningfully different from the naive uniform assumption of 27.0. Using
+the empirical baseline is essential — a team with 24 descents looks below average
+against the uniform baseline but is exactly at the mean under the empirical one.
+All z-scores in this analysis use the pooled empirical baseline across 14 seasons.
 
 ### Z-Score and Consistency Rating
 
@@ -123,7 +133,7 @@ is the most volatile. The inversion ensures that higher = more consistent.
 ## Post-Descent Stickiness
 
 Descents and CR describe the *frequency* of backward steps. Post-Descent
-Stickiness (PDS) describes what happens *after* a descent — and this is where
+Stickiness (PDS) describes what happens *after* a descent, and this is where
 the real conjecture lives.
 
 **PDS at level $k$** is defined as: after descending to outcome $k$, what is
@@ -157,13 +167,13 @@ The fraction of the time a team genuinely bounces back after any descent.
 The central hypothesis of this work:
 
 > **High-consistency, high-points teams have higher PDS₀.** After descending
-> to a regulation loss, they tend to *stay there briefly* before snapping back
+> to a regulation loss, they tend to stay there briefly before snapping back
 > into a win streak. This clustering of losses is precisely the mechanism behind
 > their apparent consistency — they have few descents because their losses are
 > grouped together, not scattered randomly across the season.
 
 This is counterintuitive. It says that elite, consistent teams are *more likely*
-to follow a loss with another loss than average teams — not because they're
+to follow a loss with another loss than average teams — not because they are
 worse, but because their loss events are structured differently. Volatility, by
 contrast, means losses are scattered: every win is followed by a loss, every
 loss by a win, producing many descents but no clustering.
@@ -215,10 +225,6 @@ def count_descents(seq):
     return sum(1 for i in range(1, len(seq)) if seq[i] < seq[i-1])
 
 def post_descent_stickiness(seq, landed_on=0):
-    """
-    P(seq[i+1] == landed_on | seq[i] == landed_on AND seq[i] < seq[i-1])
-    Returns None if no eligible descent positions exist.
-    """
     if len(seq) < 3:
         return None
     eligible = [i for i in range(1, len(seq) - 1)
@@ -229,7 +235,6 @@ def post_descent_stickiness(seq, landed_on=0):
     return sticky / len(eligible)
 
 def descent_recovery_rate(seq):
-    """After any descent, fraction of time seq[i+1] > seq[i]."""
     if len(seq) < 3:
         return None
     eligible = [i for i in range(1, len(seq) - 1) if seq[i] < seq[i-1]]
@@ -239,140 +244,249 @@ def descent_recovery_rate(seq):
 ```
 
 The three core functions are deceptively simple. `count_descents` is a single
-pass. `post_descent_stickiness` finds every eligible position — where a descent
-landed on the specified value — and checks what came next. `descent_recovery_rate`
-is the complement: genuine bouncebacks after any descent.
+pass. `post_descent_stickiness` finds every eligible position and checks what
+came next. `descent_recovery_rate` is the complement: genuine bouncebacks after
+any descent.
 
 ---
 
-## Consistency Rating Across 14 Seasons
+## Results: The 2024-25 Consistency Rankings
 
-The master dataset contains roughly 450 team-seasons of full 82-game data.
-For each one we compute descents, z-score against the pooled baseline, and
-scale to CR. The CR is re-scaled within each season so it always represents
-relative standing in that year's league — a CR of 85 in a volatile season
-means something different than CR 85 in a consistently-played season.
+The chart below shows every NHL team's descent count for the 2024-25 season,
+sorted from fewest descents (most consistent) on the left to most on the right.
+The yellow horizontal line marks the empirical expected value of 23.8 descents.
+The shaded bands show one and two standard deviations from that baseline.
 
-```{python}
-#| echo: true
-#| code-fold: true
-#| label: consistency-rating
+![NHL 2024-25: Descent Count vs League-Expected](nhl_descents_2425.png){fig-alt="Bar chart showing descent count for all 32 NHL teams in 2024-25, sorted from most to least consistent, with expected value line"}
 
-def build_consistency_rating(seq, e_desc_pooled, std_desc_pooled):
-    desc = count_descents(seq)
-    z    = (desc - e_desc_pooled) / std_desc_pooled
-    return desc, z
+Toronto leads the league with just 18 descents, a z-score of -1.41 — the most
+consistent team in the league that season. Winnipeg (19 descents, z = -1.17) and
+Dallas (20 descents, z = -0.92) round out the top three. At the other end,
+Vancouver and Anaheim both recorded 30 descents (z = +1.52), making them the
+most volatile teams in the league.
 
-# Full build_master() and pooled baseline in the GitHub repo
-# Key formula reproduced here for reference:
-#
-# z = (descents - E[descents]) / std[descents]
-#
-# CR within season:
-# CR = 100 * (1 - (z - z_min) / (z_max - z_min))
-```
+The full 2024-25 standings:
 
-::: {.callout-note}
-The full data fetch, pooled baseline computation, and master dataset build
-require ~8–12 minutes of API calls across 14 seasons. The complete notebook
-is in the [GitHub repo](https://github.com/corsi-isnt-enough/nhl-analytics).
-:::
+| Team | Points | Descents | Z-Score | CR | Playoff |
+|------|--------|----------|---------|-----|---------|
+| Toronto Maple Leafs | 108 | 18 | -1.41 | 100.0 | Yes |
+| Winnipeg Jets | 116 | 19 | -1.17 | 91.7 | Yes (PT) |
+| Nashville Predators | 68 | 20 | -0.92 | 83.3 | No |
+| Dallas Stars | 106 | 20 | -0.92 | 83.3 | Yes |
+| Detroit Red Wings | 86 | 20 | -0.92 | 83.3 | No |
+| Vegas Golden Knights | 110 | 21 | -0.68 | 75.0 | Yes |
+| Edmonton Oilers | 101 | 21 | -0.68 | 75.0 | Yes |
+| Tampa Bay Lightning | 102 | 21 | -0.68 | 75.0 | Yes |
+| Ottawa Senators | 97 | 22 | -0.44 | 66.7 | Yes |
+| Buffalo Sabres | 79 | 22 | -0.44 | 66.7 | No |
+
+A few things stand out immediately. Nashville finished with just 68 points but
+ranks third in consistency — they lost a lot, but they lost in clusters rather
+than alternating wins and losses randomly. Detroit shows a similar pattern: 86
+points and a CR of 83, suggesting a team that was more structured in how it
+played through adversity than their standings position implies.
+
+Toronto is the most interesting case. With 108 points and a CR of 100, they are
+the rare team that is both elite and maximally consistent. Most high-point teams
+show moderate to high consistency, but Toronto's 18 descents is genuinely
+exceptional.
+
+The scatter plot below shows the full relationship between points and CR across
+all 32 teams in 2024-25.
+
+![NHL 2024-25: Points vs Consistency Rating](nhl_scatter_2425.png){fig-alt="Scatter plot of season standings points vs consistency rating for all 32 NHL teams in 2024-25, colored by conference"}
+
+The chart plots points on the x-axis and CR on the y-axis. Large circles are
+playoff teams, small squares are non-playoff. The dashed lines sit at the median
+for each axis, dividing the chart into four quadrants.
+
+The upper-right quadrant — high points, high consistency — contains most of the
+elite teams: Toronto, Winnipeg, Dallas, Vegas, Tampa Bay, Edmonton, and Ottawa
+all sit there. This confirms that the best teams tend to be more consistent, but
+the relationship is not tight. Washington (111 points, CR 58) and Vancouver
+(90 points, CR 0) both sit in the high-points/volatile half, showing that
+sustained winning is possible through volatile paths too.
+
+The upper-left quadrant contains the most analytically interesting teams:
+Nashville (68 points, CR 83) and Detroit (86 points, CR 83). These are teams
+that were far more consistent in their game-to-game behavior than their final
+standings suggest. They lost, but they lost in a structured way.
+
+---
+
+## Results: The 2025-26 Season (In Progress)
+
+The same framework applied to the in-progress 2025-26 season shows a different
+landscape. Colorado leads the Presidents' Trophy race with 121 points and a CR
+of 73. Tampa Bay leads the consistency rankings with 18 descents (CR 100),
+followed by Buffalo (19 descents, CR 91) and Dallas (20 descents, CR 82).
+
+![NHL 2025-26: Descent Count vs League-Expected](nhl_descents_2526.png){fig-alt="Bar chart showing descent count for all 32 NHL teams in 2025-26 season in progress"}
+
+![NHL 2025-26: Points vs Consistency Rating](nhl_scatter_2526.png){fig-alt="Scatter plot of season standings points vs consistency rating for all 32 NHL teams in 2025-26 in progress"}
+
+The 2025-26 scatter shows Los Angeles at the extreme bottom — 0 CR with 90 points,
+the most volatile high-points team in the current season. Colorado (121 points,
+CR 73) is the Presidents' Trophy leader but sits notably below the most consistent
+teams, suggesting they are accumulating points through a more volatile path than
+Tampa Bay or Buffalo.
+
+---
+
+## The Per-Game Sequence View
+
+The grid below shows every team's game-by-game outcome sequence for 2024-25. Each
+bar represents one game: height 2 is a win, height 1 is an OT/SO loss, height 0
+is a regulation loss. Descent games are highlighted in a lighter shade. Playoff
+teams have a green border; the Presidents' Trophy winner (Winnipeg) has a gold
+last bar.
+
+![NHL 2024-25: Per-Game Standing Points for All 32 Teams](nhl_sequences_2425.png){fig-alt="Grid of 32 bar charts showing per-game outcome sequences for all NHL teams in 2024-25"}
+
+Reading these charts side by side makes the difference between consistent and
+volatile teams immediately visible. Look at Toronto (top row, second panel) — long
+runs of 2-point wins with occasional tight clusters of losses before resuming.
+Compare that to Vancouver (bottom row) or Anaheim (bottom row, far right) — far
+more alternation between wins and losses throughout the season.
+
+Winnipeg's sequence is also instructive. Their 116-point season came through a
+largely dominant run in Western colors, with only a handful of descent clusters
+visible. The losses came in small groups; the wins came in long unbroken stretches.
 
 ---
 
 ## Testing the Conjecture
 
-With the master dataset built, the test is straightforward. We filter to
-full 82-game seasons (no COVID, no in-progress), require PDS₀ to be
-non-null (teams need at least a few descent-to-zero events), and compute
-Pearson correlations:
+With 358 team-seasons in the PDS analysis (full 82-game seasons, COVID excluded),
+the correlations are:
 
-```{python}
-#| echo: true
-#| code-fold: true
-#| label: pds-correlations
+- **CR vs PDS₀: r = 0.158, p = 0.0028 — Significant**
+- **Pts vs PDS₀: r = -0.686, p = 0.0000 — Significant**
 
-# From the full run — reproduced for reference:
-#
-# r_cr,  p_cr  = stats.pearsonr(pds_df["consistency_rating"], pds_df["pds0"])
-# r_pts, p_pts = stats.pearsonr(pds_df["points"],             pds_df["pds0"])
-#
-# Quadrant analysis:
-# q_high_both = pds_df[
-#     (pds_df["consistency_rating"] > median_cr) &
-#     (pds_df["points"] > median_pts)
-# ]
-```
+The CR correlation is positive and significant — more consistent teams do show
+higher PDS₀. But the points correlation tells a more nuanced story: better teams
+actually show *lower* PDS₀. Higher-points teams recover from losses faster, not
+slower.
 
-The scatter grid — CR vs PDS₀, Points vs PDS₀, PDS₁ vs CR, and a
-Points × CR quartile heatmap of average PDS₀ — is the primary visualization.
-The heatmap in particular shows whether the high-CR/high-points quadrant
-systematically differs from the others in PDS₀, which is the direct test
-of the conjecture.
+![Post-Descent Stickiness Analysis — 2x2 scatter grid and heatmap](nhl_pds_analysis.png){fig-alt="2x2 grid showing CR vs PDS0, Points vs PDS0, PDS1 vs CR, and average PDS0 by Points x Consistency quartile heatmap"}
 
-The t-test between the top 16 most consistent team-seasons and the rest of
-the dataset provides a significance check on whether that difference, if
-present, is real.
+The four panels unpack this:
 
-![Top 16 most consistent NHL team-seasons ranked by CR, colored by PDS₀, with PDS₀ distribution comparison across groups](nhl_top16_pds.png){fig-alt="Side-by-side chart showing top 16 consistent team-seasons by CR with PDS0 color coding, and density distributions of PDS0 for different groups"}
+**Top left (CR vs PDS₀):** A weak but real positive correlation. More consistent
+teams have slightly higher PDS₀. The relationship is noisy — individual team-seasons
+vary widely — but the trend line slopes upward.
 
-![PDS₀ analysis — CR vs PDS₀, Points vs PDS₀, PDS₁ vs CR, and average PDS₀ by Points × Consistency quartile heatmap](nhl_pds_analysis.png){fig-alt="2x2 grid of scatter plots and heatmap showing relationships between consistency rating, standings points, and post-descent stickiness metrics"}
+**Top right (Points vs PDS₀):** A much stronger negative correlation. Better teams
+have lower PDS₀ — after a regulation loss, they are more likely to bounce back in
+the next game. The 2022-23 Boston Bruins (135 points, PDS₀ = 0.091) and 2018-19
+Tampa Bay Lightning (128 points, PDS₀ = 0.067) are labeled outliers in the
+lower-right — elite teams that almost never followed a regulation loss with another
+one.
+
+**Bottom left (CR vs PDS₁):** No meaningful relationship. OTL stickiness is
+essentially uncorrelated with consistency (r = 0.015, p = 0.783). OT losses
+behave differently from regulation losses in terms of what follows.
+
+**Bottom right (heatmap):** Average PDS₀ by Points × Consistency quartile. The
+most important cell is Q4 points / Q4 CR (bottom-right): elite teams that are
+also highly consistent show an average PDS₀ of 0.319 — the lowest in the entire
+grid. High-CR, low-points teams (Q1 points / Q4 CR, top-right) show 0.581 —
+nearly double. The pattern is clear: truly elite teams snap back from losses
+quickly, while consistent-but-mediocre teams cluster losses more tightly.
 
 ---
 
-## What the Metrics Reveal
+## The Top 16 Most Consistent Team-Seasons
 
-The descent framework surfaces things that raw points totals hide:
+The chart below shows the 16 most consistent team-seasons in the 14-season dataset,
+ranked by CR. Bar color encodes PDS₀ — red means stickier (losses cluster more),
+green means they bounce back faster.
 
-**Consistent elite teams** (high CR, high points) tend to have structured
-loss patterns — losses cluster, then the team runs. This is visible in the
-per-game bar charts: long blue win streaks punctuated by tight red descent
-clusters before the team reasserts itself.
+![Top 16 Most Consistent NHL Team-Seasons — PDS₀ Deep Dive](nhl_top16_pds.png){fig-alt="Side-by-side bar chart of top 16 most consistent team-seasons with PDS0 color coding and distribution comparison"}
 
-**Volatile teams** scatter wins and losses more randomly. Their descent count
-is high not because they lose more, but because their results alternate. The
-same final point total can be reached through a volatile or consistent path.
+The distribution panel on the right overlays three groups: all 358 team-seasons
+(blue), the high-CR/high-points elite quadrant (green), and the top 16 most
+consistent (orange). The elite quadrant mean sits at 0.330, well below the full
+dataset mean of 0.387. The top 16 mean is 0.393 — slightly above the dataset
+average, but not significantly so (t = 0.193, p = 0.8471).
 
-**The PDS₀ signal** is the mechanism under the hood: if a consistent team's
-loss clustering is real and not a statistical artifact, their PDS₀ should
-be measurably higher than the league average. Losses beget losses briefly —
-and then the streak resumes.
+A few individual team-seasons worth noting: The 2022-23 Boston Bruins (135 points,
+PDS₀ = 0.091) and the 2018-19 Tampa Bay Lightning (128 points, PDS₀ = 0.067) are
+the two most resilient team-seasons in the dataset — after a regulation loss, they
+almost always bounced back immediately. The 2015-16 Edmonton Oilers, by contrast,
+finished with just 70 points but showed PDS₀ = 0.765 — after a regulation loss,
+there was a 76.5% chance the next game was also a regulation loss. Consistent in
+structure, but consistently losing.
 
-**The deep dive view** — a two-panel chart showing per-game outcome bars with
-descents highlighted in red, plus cumulative points vs league average pace —
-makes this visible for any team-season. The 2024-25 Winnipeg Jets (Presidents
-Trophy winners) are a natural starting point: high CR, strong points total,
-and a season that should show exactly the kind of structured loss clustering
-the conjecture predicts.
+---
 
-![Winnipeg Jets 2024-25 — per-game outcomes with descents highlighted in red, and cumulative points vs league average pace](nhl_deepdive_WPG_202425.png){fig-alt="Two-panel chart showing Winnipeg Jets 2024-25 season game-by-game results and cumulative points trajectory"}
+## Conjecture Assessment
+
+The data supports a modified version of the original conjecture:
+
+**CONJECTURE SUPPORTED: Consistent teams show higher PDS₀** — after descending
+to a loss they do tend to cluster losses before snapping back, which is the
+mechanism behind their consistency. The CR vs PDS₀ correlation (r = 0.158,
+p = 0.003) confirms this directional relationship.
+
+However, the points story tells a different and more important truth: **truly
+elite teams have lower PDS₀**, not higher. The best teams in the dataset bounce
+back from regulation losses quickly. The combination of high consistency and low
+PDS₀ — the hallmark of teams like the 2022-23 Bruins and 2018-19 Lightning —
+reflects something more than just loss-clustering. Those teams were consistent
+because they almost never had long losing sequences to cluster in the first place.
+
+The more nuanced finding is that **consistency and recovery speed are different
+things**, and the most elite teams are distinguished by both. A high-CR team with
+high PDS₀ is one that clusters its losses. A high-CR team with low PDS₀ is one
+that simply doesn't lose much at all.
+
+---
+
+## Deep Dive: Winnipeg Jets 2024-25
+
+As the Presidents' Trophy winner and second-most-consistent team in the league
+(CR 92, 19 descents), the Jets provide a useful case study.
+
+![Winnipeg Jets 2024-25 — per-game outcomes with descents highlighted, and cumulative points vs league average pace](nhl_deepdive_WPG_202425.png){fig-alt="Two-panel chart showing Winnipeg Jets 2024-25 per-game results and cumulative points trajectory"}
+
+The top panel shows each game as a bar — wins at height 2, OT losses at height 1,
+regulation losses at height 0. Descent games are highlighted. With only 19 descents
+across 82 games, the Jets had just 19 moments where a result was strictly worse
+than the previous game. The loss sequences that do appear are short and quickly
+followed by resumption of winning.
+
+The bottom panel shows cumulative points versus league average pace (1.10 points
+per game). The Jets track well above the league average line for most of the
+season, with the gap widening in the second half. Their 116 points represent a
+full 14 points above league average pace across 82 games.
+
+The Jets' PDS₀ of 0.333 sits slightly below the dataset mean of 0.387 — meaning
+after a regulation loss, they recovered in the next game about two-thirds of the
+time. Combined with their low descent count, this is the signature of an elite,
+consistent team: losses are rare, and when they do come, they don't last long.
 
 ---
 
 ## Limitations and Open Questions
 
-**PDS is sample-limited at the team level.** A single 82-game season may
-produce only 15–25 descent-to-zero events for any one team. The per-team
-PDS estimate is noisy. The correlation analysis across 450+ team-seasons is
-more reliable, but individual team PDS values should be interpreted with
-appropriate caution.
+**PDS is sample-limited at the team level.** A single 82-game season produces
+only 15-25 descent-to-zero events for any one team. Individual team PDS estimates
+are noisy; the correlation analysis across 450+ team-seasons is more reliable.
 
-**The conjecture direction is not guaranteed.** The framework is set up to
-detect whether consistent teams have *higher* PDS₀, but the analysis
-is honest about the alternative finding: if consistent teams actually show
-*lower* PDS₀, that means they recover faster after losses — which is a
-different but equally interesting conclusion. The code reports which finding
-the data supports.
+**Sequences treat all losses as equivalent.** A regulation loss on a back-to-back
+road trip is not the same as one in a playoff push. Weighting by game leverage or
+schedule context would be a meaningful extension.
 
-**Sequences treat all losses as equivalent.** A regulation loss on a back-to-
-back in the last week of the season is not the same as a regulation loss in
-Game 3 of a playoff push. The sequence model doesn't know this. Weighting
-by game leverage or schedule context would be a meaningful extension.
+**CR is relative, not absolute.** A CR of 90 tells you where a team ranked in
+that year's consistency distribution, not what their absolute volatility level was.
+Cross-season comparisons require care.
 
-**CR is relative, not absolute.** A CR of 90 in a given season tells you
-where a team ranked in that year's distribution of consistency — it doesn't
-tell you what their absolute volatility was. Cross-season comparisons of CR
-values require care.
+**The t-test on the top 16 was not significant (p = 0.847).** The directional
+finding — that consistent teams show slightly higher PDS₀ — is real but the
+effect size is small. The stronger and more significant finding is the negative
+correlation between points and PDS₀, which points toward recovery speed as the
+more important variable for elite teams.
 
 ---
 
