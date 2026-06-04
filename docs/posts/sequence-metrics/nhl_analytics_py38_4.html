@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>NHL Season Analytics — Consistency Rating &amp; Post-Descent Stickiness – Corsi Isn’t Enough</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-ccafe2c99a4564d55934ca8539ca9f46.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-67899a0544166b2f85d65ce54e7f18ed.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Corsi Isn’t Enough</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../posts/"> 
+<span class="menu-text">Posts</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/corsi-isnt-enough/nhl-analytics"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://corsiistenough.substack.com"> <i class="bi bi-substack" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#through-2024-25-13-full-82-game-seasons-2025-26-in-progress" id="toc-through-2024-25-13-full-82-game-seasons-2025-26-in-progress" class="nav-link active" data-scroll-target="#through-2024-25-13-full-82-game-seasons-2025-26-in-progress">2010-11 through 2024-25 (13 full 82-game seasons) + 2025-26 in progress</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">NHL Season Analytics — Consistency Rating &amp; Post-Descent Stickiness</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="through-2024-25-13-full-82-game-seasons-2025-26-in-progress" class="level3">
+<h3 class="anchored" data-anchor-id="through-2024-25-13-full-82-game-seasons-2025-26-in-progress">2010-11 through 2024-25 (13 full 82-game seasons) + 2025-26 in progress</h3>
+<p><strong>Core concept:</strong> Every NHL game produces one of three standing point outcomes: - <code>2</code> → Win | <code>1</code> → OT/SO Loss | <code>0</code> → Regulation Loss</p>
+<p><strong>Metrics:</strong> - <code>SUM(seq)</code> → Total standings points - <code>DESCENTS(seq)</code> → Count where <code>seq[i] &lt; seq[i-1]</code> - <code>CONSISTENCY RATING</code> → z-score vs pooled league baseline, scaled 0-100 within season - <code>PDS_0</code> → Post-Descent Stickiness at 0: after descending to a regulation loss, P(next game is also a regulation loss) - <code>PDS_1</code> → Post-Descent Stickiness at 1: after descending to an OTL, P(next game is also an OTL)</p>
+<p><strong>Conjecture:</strong> High-consistency, high-points teams have higher PDS_0 — after a descent to a loss, they tend to stay at that level briefly before snapping back into a win streak. This clustering of losses is precisely what makes them look “consistent” (few descents) in the first place.</p>
+<p><strong>Indicators:</strong> 🏒 <code>[P]</code> Playoff team | 🏆 <code>[PT]</code> Presidents Trophy</p>
+<div id="ed8051c5" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requestsimport pandas <span class="im">as</span> pdimport numpy <span class="im">as</span> npimport matplotlib.pyplot <span class="im">as</span> pltimport matplotlib.patches <span class="im">as</span> mpatchesfrom scipy <span class="im">import</span> statsimport timeimport warningswarnings.filterwarnings(<span class="st">'ignore'</span>)plt.rcParams.update({    <span class="st">'figure.facecolor'</span>: <span class="st">'#0d1117'</span>,    <span class="st">'axes.facecolor'</span>:   <span class="st">'#0d1117'</span>,    <span class="st">'axes.edgecolor'</span>:   <span class="st">'#30363d'</span>,    <span class="st">'axes.labelcolor'</span>:  <span class="st">'#e6edf3'</span>,    <span class="st">'xtick.color'</span>:      <span class="st">'#8b949e'</span>,    <span class="st">'ytick.color'</span>:      <span class="st">'#8b949e'</span>,    <span class="st">'text.color'</span>:       <span class="st">'#e6edf3'</span>,    <span class="st">'grid.color'</span>:       <span class="st">'#21262d'</span>,    <span class="st">'grid.linestyle'</span>:   <span class="st">'--'</span>,    <span class="st">'grid.alpha'</span>:        <span class="fl">0.5</span>,    <span class="st">'font.family'</span>:      <span class="st">'DejaVu Sans'</span>,})BASE_URL    <span class="op">=</span> <span class="st">'https://api-web.nhle.com/v1'</span>SEASON_2425 <span class="op">=</span> <span class="st">'20242025'</span>SEASON_2526 <span class="op">=</span> <span class="st">'20252026'</span><span class="co"># 14 full 82-game seasons — skip 2012-13 (48-game lockout)HISTORICAL_SEASONS = [    '20102011','20112012','20132014','20142015','20152016',    '20162017','20172018','20182019','20192020','20202021',    '20212022','20222023','20232024','20242025']COVID_SEASON = '20192020'   # shortened ~71 games, kept but flaggedPLAYOFFS = {    '20242025': {'TOR','TBL','FLA','WSH','CAR','NJD','OTT','MTL',                 'WPG','DAL','COL','VGK','LAK','EDM','MIN','STL'},    '20252026': {'BUF','TBL','MTL','CAR','PIT','PHI','BOS','OTT',                 'COL','DAL','MIN','VGK','EDM','ANA','UTA','LAK'},}PRESIDENTS = {    '20242025': {'WPG'},    '20252026': {'COL'},}def get_indicators(abbrev, season):    badges = []    if abbrev in PRESIDENTS.get(season, set()):        badges.append('PT')    if abbrev in PLAYOFFS.get(season, set()):        badges.append('P')    return badgesprint("Setup complete.")print(f"  Historical seasons to fetch: {len(HISTORICAL_SEASONS)}")print(f"  Expected team-seasons: ~{len(HISTORICAL_SEASONS) * 32}")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="47254393" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_all_teams():    <span class="st">"""    Fetch all 32 NHL team abbreviations and names from the standings endpoint.    Returns a list of dicts with keys: abbrev, name, conference, division.    """</span>    url <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>BASE_URL<span class="sc">}</span><span class="ss">/standings/now"</span>    resp <span class="op">=</span> requests.get(url, timeout<span class="op">=</span><span class="dv">10</span>)    resp.raise_for_status()    data <span class="op">=</span> resp.json()    teams <span class="op">=</span> []    <span class="cf">for</span> entry <span class="kw">in</span> data[<span class="st">'standings'</span>]:        teams.append({            <span class="st">'abbrev'</span>:     entry[<span class="st">'teamAbbrev'</span>][<span class="st">'default'</span>],            <span class="st">'name'</span>:       entry[<span class="st">'teamName'</span>][<span class="st">'default'</span>],            <span class="st">'conference'</span>: entry[<span class="st">'conferenceName'</span>],            <span class="st">'division'</span>:   entry[<span class="st">'divisionName'</span>],        })    teams.sort(key<span class="op">=</span><span class="kw">lambda</span> x: x[<span class="st">'abbrev'</span>])    <span class="cf">return</span> teamsteams <span class="op">=</span> get_all_teams()teams_df <span class="op">=</span> pd.DataFrame(teams)<span class="bu">print</span>(<span class="ss">f"✅ Found </span><span class="sc">{</span><span class="bu">len</span>(teams)<span class="sc">}</span><span class="ss"> teams:</span><span class="ch">\n</span><span class="ss">"</span>)<span class="bu">print</span>(teams_df.to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="8122f690" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_team_sequence(abbrev, season<span class="op">=</span>SEASON_2425):    <span class="st">"""    Fetch a team's full season schedule and return a sequence where each    element is the standings points earned that game:        2 = Win, 1 = OT/SO Loss, 0 = Regulation Loss    """</span>    url  <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>BASE_URL<span class="sc">}</span><span class="ss">/club-schedule-season/</span><span class="sc">{</span>abbrev<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>season<span class="sc">}</span><span class="ss">"</span>    resp <span class="op">=</span> requests.get(url, timeout<span class="op">=</span><span class="dv">10</span>)    resp.raise_for_status()    data <span class="op">=</span> resp.json()    sequence <span class="op">=</span> []    <span class="cf">for</span> game <span class="kw">in</span> data[<span class="st">"games"</span>]:        <span class="cf">if</span> game.get(<span class="st">"gameType"</span>, <span class="dv">0</span>) <span class="op">!=</span> <span class="dv">2</span>:            <span class="cf">continue</span>        <span class="cf">if</span> game.get(<span class="st">"gameState"</span>, <span class="st">""</span>) <span class="kw">not</span> <span class="kw">in</span> (<span class="st">"OFF"</span>, <span class="st">"FINAL"</span>):            <span class="cf">continue</span>        home_abbrev <span class="op">=</span> game[<span class="st">"homeTeam"</span>][<span class="st">"abbrev"</span>]        home_score  <span class="op">=</span> game[<span class="st">"homeTeam"</span>][<span class="st">"score"</span>]        away_score  <span class="op">=</span> game[<span class="st">"awayTeam"</span>][<span class="st">"score"</span>]        team_won    <span class="op">=</span> (home_score <span class="op">&gt;</span> away_score) <span class="cf">if</span> abbrev <span class="op">==</span> home_abbrev <span class="cf">else</span> (away_score <span class="op">&gt;</span> home_score)        period_type <span class="op">=</span> game.get(<span class="st">"periodDescriptor"</span>, {}).get(<span class="st">"periodType"</span>, <span class="st">"REG"</span>)        went_to_ot  <span class="op">=</span> period_type <span class="kw">in</span> (<span class="st">"OT"</span>, <span class="st">"SO"</span>)        <span class="cf">if</span> team_won:            sequence.append(<span class="dv">2</span>)        <span class="cf">elif</span> went_to_ot:            sequence.append(<span class="dv">1</span>)        <span class="cf">else</span>:            sequence.append(<span class="dv">0</span>)    <span class="cf">return</span> sequencedef sum_points(seq):    <span class="cf">return</span> <span class="bu">sum</span>(seq)<span class="kw">def</span> count_descents(seq):    <span class="cf">return</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq)) <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>])<span class="kw">def</span> post_descent_stickiness(seq, landed_on<span class="op">=</span><span class="dv">0</span>):    <span class="st">"""    After a descent that lands on `landed_on`, what fraction of the time    does the NEXT game equal that same value?    Formally: P(seq[i+1] == landed_on  |  seq[i] == landed_on  AND  seq[i] &lt; seq[i-1])    This captures whether a team STAYS at the new lower level after a descent    rather than recovering or declining further — the "clustering" behaviour.    Returns None if there are no eligible descent positions.    """</span>    <span class="cf">if</span> <span class="bu">len</span>(seq) <span class="op">&lt;</span> <span class="dv">3</span>:        <span class="cf">return</span> <span class="va">None</span>    eligible <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">-</span> <span class="dv">1</span>)                <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>] <span class="kw">and</span> seq[i] <span class="op">==</span> landed_on]    <span class="cf">if</span> <span class="kw">not</span> eligible:        <span class="cf">return</span> <span class="va">None</span>    sticky <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> eligible <span class="cf">if</span> seq[i<span class="op">+</span><span class="dv">1</span>] <span class="op">==</span> landed_on)    <span class="cf">return</span> sticky <span class="op">/</span> <span class="bu">len</span>(eligible)<span class="kw">def</span> descent_recovery_rate(seq):    <span class="st">"""    After ANY descent at position i, what fraction of the time does    seq[i+1] &gt; seq[i]? (A genuine improvement — the team bounced back.)    Complement of stickiness + further decline.    """</span>    <span class="cf">if</span> <span class="bu">len</span>(seq) <span class="op">&lt;</span> <span class="dv">3</span>:        <span class="cf">return</span> <span class="va">None</span>    eligible <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">-</span> <span class="dv">1</span>) <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>]]    <span class="cf">if</span> <span class="kw">not</span> eligible:        <span class="cf">return</span> <span class="va">None</span>    recovered <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> eligible <span class="cf">if</span> seq[i<span class="op">+</span><span class="dv">1</span>] <span class="op">&gt;</span> seq[i])    <span class="cf">return</span> recovered <span class="op">/</span> <span class="bu">len</span>(eligible)<span class="co"># ── Sanity checks ─────────────────────────────────────────────────────────────print("Function definitions complete. Sanity checks:")print()# Good team: wins streak, then 2 losses, then back to winsgood = [2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 2]print(f"Good team:  {good}")print(f"  Descents: {count_descents(good)}")print(f"  PDS_0:    {post_descent_stickiness(good, 0)}")print(f"  PDS_1:    {post_descent_stickiness(good, 1)}")print(f"  Recovery: {descent_recovery_rate(good)}")print()# Volatile team: alternating resultsvola = [2, 0, 2, 0, 1, 0, 2, 0, 2, 0, 1, 0]print(f"Volatile:   {vola}")print(f"  Descents: {count_descents(vola)}")print(f"  PDS_0:    {post_descent_stickiness(vola, 0)}")print(f"  PDS_1:    {post_descent_stickiness(vola, 1)}")print(f"  Recovery: {descent_recovery_rate(vola)}")print()# Bad consistent team: long losing streaksbad  = [0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0]print(f"Bad consis: {bad}")print(f"  Descents: {count_descents(bad)}")print(f"  PDS_0:    {post_descent_stickiness(bad, 0)}")print(f"  PDS_1:    {post_descent_stickiness(bad, 1)}")print(f"  Recovery: {descent_recovery_rate(bad)}")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="d3e01fc1" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fetches all historical seasons + 2025-26# ~8-12 minutes with rate limitingall_sequences = {}fetch_errors  = []for season in HISTORICAL_SEASONS + [SEASON_2526]:    all_sequences[season] = {}    label = f"{season[:4]}-{season[4:6]}"    print(f"Fetching {label}...", end=" ", flush=True)    for team in teams:        abbrev = team["abbrev"]        if abbrev == "UTA" and season &lt; "20242025":            continue   # Utah Mammoth did not exist before 2024-25        try:            seq = get_team_sequence(abbrev, season)            if len(seq) &gt; 0:                all_sequences[season][abbrev] = seq        except Exception as e:            fetch_errors.append((season, abbrev, str(e)))        time.sleep(0.12)    n_teams = len(all_sequences[season])    n_games = sum(len(s) for s in all_sequences[season].values())    print(f"{n_teams} teams, {n_games} games")total_ts = sum(len(v) for v in all_sequences.values())total_g  = sum(len(s) for v in all_sequences.values() for s in v.values())print(f"\nFetch complete! {total_ts} team-seasons, {total_g} total games.")if fetch_errors:    print(f"Errors: {fetch_errors[:5]}")# Alias so later cells still worksequences = all_sequences[SEASON_2425]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="653873e7" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Pooled baseline from all full 82-game historical seasons ─────────────────baseline_results = []for season in HISTORICAL_SEASONS:    if season == COVID_SEASON:        continue    for seq in all_sequences.get(season, {}).values():        if len(seq) &gt;= 75:            baseline_results.extend(seq)total_bl         = len(baseline_results)bp0              = baseline_results.count(0) / total_blbp1              = baseline_results.count(1) / total_blbp2              = baseline_results.count(2) / total_blp_descent_pooled = bp0*bp1 + bp0*bp2 + bp1*bp2e_desc_pooled    = 81 * p_descent_pooledstd_desc_pooled  = np.sqrt(81 * p_descent_pooled * (1 - p_descent_pooled))print("Pooled Baseline")print(f"  Games: {total_bl}")print(f"  P(0)={bp0:.4f}  P(1)={bp1:.4f}  P(2)={bp2:.4f}")print(f"  P(descent)={p_descent_pooled:.4f}  E[descents]={e_desc_pooled:.2f}  Std={std_desc_pooled:.2f}")# ── Build master DataFrame ────────────────────────────────────────────────────def build_master():    rows      = []    team_meta = {t["abbrev"]: t for t in teams}    for season in HISTORICAL_SEASONS + [SEASON_2526]:        label    = f"{season[:4]}-{season[4:6]}"        is_covid = (season == COVID_SEASON)        for abbrev, seq in all_sequences.get(season, {}).items():            if len(seq) &lt; 30:                continue            meta   = team_meta.get(abbrev, {})            desc   = count_descents(seq)            pds0   = post_descent_stickiness(seq, landed_on=0)            pds1   = post_descent_stickiness(seq, landed_on=1)            drr    = descent_recovery_rate(seq)            z      = (desc - e_desc_pooled) / std_desc_pooled            badges = get_indicators(abbrev, season)            rows.append({                "season":       season,                "season_label": label,                "abbrev":       abbrev,                "name":         meta.get("name", abbrev),                "conference":   meta.get("conference", ""),                "games":        len(seq),                "points":       sum_points(seq),                "descents":     desc,                "pds0":         pds0,                "pds1":         pds1,                "drr":          drr,                "z_score":      z,                "covid":        is_covid,                "playoff":      "P" in badges,                "presidents":   "PT" in badges,                "in_progress":  (season == SEASON_2526),            })    df = pd.DataFrame(rows)    # Scale CR 0-100 within each season    for season in df["season"].unique():        mask  = df["season"] == season        z_min = df.loc[mask, "z_score"].min()        z_max = df.loc[mask, "z_score"].max()        if z_max &gt; z_min:            df.loc[mask, "consistency_rating"] = 100 * (                1 - (df.loc[mask, "z_score"] - z_min) / (z_max - z_min)            )        else:            df.loc[mask, "consistency_rating"] = 50.0    return dfmaster = build_master()# Backward-compatible aliasessummary_2425  = master[master["season"] == SEASON_2425].copy().reset_index(drop=True)summary_2526  = master[master["season"] == SEASON_2526].copy().reset_index(drop=True)summary       = summary_2425expected_desc = e_desc_pooledstd_desc      = std_desc_pooledexp_2425 = exp_2526 = e_desc_pooledstd_2425 = std_2526 = std_desc_pooledprint(f"\nMaster dataset: {len(master)} team-seasons, {master['season'].nunique()} seasons")print(f"PDS_0 available: {master['pds0'].notna().sum()} team-seasons")print(f"PDS_1 available: {master['pds1'].notna().sum()} team-seasons")print(f"DRR available:   {master['drr'].notna().sum()} team-seasons")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="cee5e465" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> team_color(conference):    <span class="st">"""Return a fill color by conference."""</span>    <span class="cf">return</span> <span class="st">'#1f6feb'</span> <span class="cf">if</span> conference <span class="op">==</span> <span class="st">'Eastern'</span> <span class="cf">else</span> <span class="st">'#f78166'</span><span class="kw">def</span> badge_label(abbrev, season):    <span class="st">"""Build compact badge string for chart title."""</span>    badges <span class="op">=</span> get_indicators(abbrev, season)    parts <span class="op">=</span> []    <span class="cf">if</span> <span class="st">'PT'</span> <span class="kw">in</span> badges:        parts.append(<span class="st">'🏆PT'</span>)    <span class="cf">if</span> <span class="st">'P'</span> <span class="kw">in</span> badges:        parts.append(<span class="st">'🏒P'</span>)    <span class="cf">return</span> <span class="st">'  '</span> <span class="op">+</span> <span class="st">'  '</span>.join(parts) <span class="cf">if</span> parts <span class="cf">else</span> <span class="st">''</span><span class="kw">def</span> plot_team_sequence(ax, abbrev, seq, meta, season, summary_df):    <span class="st">"""    Bar chart for one team's season sequence with indicator markers.    """</span>    games  <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">+</span> <span class="dv">1</span>))    color  <span class="op">=</span> team_color(meta[<span class="st">'conference'</span>])    pts    <span class="op">=</span> sum_points(seq)    descs  <span class="op">=</span> count_descents(seq)    cr_row <span class="op">=</span> summary_df.loc[summary_df[<span class="st">'abbrev'</span>] <span class="op">==</span> abbrev, <span class="st">'consistency_rating'</span>]    cr     <span class="op">=</span> cr_row.values[<span class="dv">0</span>] <span class="cf">if</span> <span class="bu">len</span>(cr_row) <span class="cf">else</span> <span class="dv">0</span>    badges <span class="op">=</span> get_indicators(abbrev, season)    bar_colors <span class="op">=</span> []    <span class="cf">for</span> v <span class="kw">in</span> seq:        <span class="cf">if</span> v <span class="op">==</span> <span class="dv">2</span>:            bar_colors.append(color)        <span class="cf">elif</span> v <span class="op">==</span> <span class="dv">1</span>:            bar_colors.append(<span class="st">'#8b949e'</span>)        <span class="cf">else</span>:            bar_colors.append(<span class="st">'#21262d'</span>)    ax.bar(games, seq, color<span class="op">=</span>bar_colors, width<span class="op">=</span><span class="fl">1.0</span>, align<span class="op">=</span><span class="st">'center'</span>,           edgecolor<span class="op">=</span><span class="st">'none'</span>, zorder<span class="op">=</span><span class="dv">3</span>)    <span class="co"># ── Indicator markers ─────────────────────────────────────────────────────    last_game = len(seq)    # President's Trophy: gold star above last bar    if 'PT' in badges and seq:        ax.annotate('★', xy=(last_game, seq[-1]),                    xytext=(last_game, 2.05),                    fontsize=7, color='#FFD700', ha='center', va='bottom',                    annotation_clip=False)    # Playoff: draw a subtle green top border on the axes    if 'P' in badges:        ax.spines['top'].set_color('#3fb950')        ax.spines['top'].set_linewidth(2.0)    else:        ax.spines['top'].set_color('#30363d')        ax.spines['top'].set_linewidth(0.5)    ax.set_xlim(0.5, 82.5)    ax.set_ylim(0, 2)    ax.set_yticks([0, 1, 2])    ax.set_yticklabels(['0', '1', '2'], fontsize=6)    ax.tick_params(axis='x', labelsize=6)    ax.grid(True, axis='y', alpha=0.3, zorder=0)    badge_str = badge_label(abbrev, season)    ax.set_title(        f"{abbrev}  |  {pts}pts  |  {descs}d  |  CR{cr:.0f}{badge_str}",        fontsize=6.5, pad=3, color='#e6edf3'    )def plot_season_grid(season_key, seq_dict, summary_df, title):    """Render the full 32-team grid for a given season."""    sorted_abbrevs = sorted(seq_dict.keys())    n     = len(sorted_abbrevs)    ncols = 4    nrows = -(-n // ncols)    fig, axes = plt.subplots(nrows, ncols, figsize=(20, nrows * 2.4))    fig.suptitle(title, fontsize=15, y=1.01, color='#e6edf3', fontweight='bold')    fig.patch.set_facecolor('#0d1117')    team_meta = {t['abbrev']: t for t in teams}    for idx, abbrev in enumerate(sorted_abbrevs):        row, col = divmod(idx, ncols)        ax = axes[row][col]        ax.set_facecolor('#0d1117')        plot_team_sequence(ax, abbrev, seq_dict[abbrev], team_meta[abbrev], season_key, summary_df)    for idx in range(n, nrows * ncols):        row, col = divmod(idx, ncols)        axes[row][col].set_visible(False)    # Legend    east_patch  = mpatches.Patch(color='#1f6feb', alpha=0.9, label='Eastern — Win')    west_patch  = mpatches.Patch(color='#f78166', alpha=0.9, label='Western — Win')    otl_patch   = mpatches.Patch(color='#8b949e', alpha=0.9, label='OT/SO Loss')    loss_patch  = mpatches.Patch(color='#21262d', alpha=0.9, label='Reg Loss')    play_patch  = mpatches.Patch(color='#3fb950', alpha=0.9, label='🏒 Playoff team (green border)')    pt_text     = mpatches.Patch(color='#FFD700', alpha=0.9, label='🏆 Presidents Trophy (★ last bar)')    fig.legend(handles=[east_patch, west_patch, otl_patch, loss_patch, play_patch, pt_text],               loc='lower center', ncol=6, fontsize=8,               framealpha=0.3, bbox_to_anchor=(0.5, -0.01))    plt.tight_layout()    return fig# ── Render 2024-25 ────────────────────────────────────────────────────────────fig_2425 = plot_season_grid(    SEASON_2425, all_sequences[SEASON_2425], summary_2425,    "NHL 2024-25 Season — Per-Game Standing Points")fig_2425.savefig('nhl_sequences_2425.png', dpi=150, bbox_inches='tight', facecolor='#0d1117')plt.show()print("✅ Saved: nhl_sequences_2425.png")# ── Render 2025-26 ────────────────────────────────────────────────────────────fig_2526 = plot_season_grid(    SEASON_2526, all_sequences[SEASON_2526], summary_2526,    "NHL 2025-26 Season — Per-Game Standing Points (In Progress)")fig_2526.savefig('nhl_sequences_2526.png', dpi=150, bbox_inches='tight', facecolor='#0d1117')plt.show()print("✅ Saved: nhl_sequences_2526.png")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="bdbcccdf" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_consistency_scatter(summary_df, season_label, expected, std):    <span class="st">"""Points vs Consistency Rating scatter with indicator callouts."""</span>    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">7</span>))    fig.patch.set_facecolor(<span class="st">'#0d1117'</span>)    ax.set_facecolor(<span class="st">'#0d1117'</span>)    <span class="cf">for</span> _, row <span class="kw">in</span> summary_df.iterrows():        color <span class="op">=</span> <span class="st">'#1f6feb'</span> <span class="cf">if</span> row[<span class="st">'conference'</span>] <span class="op">==</span> <span class="st">'Eastern'</span> <span class="cf">else</span> <span class="st">'#f78166'</span>        <span class="co"># Playoff teams: brighter, larger marker        size    = 140 if row['playoff'] else 70        alpha   = 1.0 if row['playoff'] else 0.5        marker  = '*' if row['presidents'] else ('o' if row['playoff'] else 's')        ax.scatter(row['points'], row['consistency_rating'],                   c=color, s=size, alpha=alpha, marker=marker, zorder=3,                   edgecolors='#FFD700' if row['presidents'] else 'none',                   linewidths=1.5)        ax.annotate(row['abbrev'],                    (row['points'], row['consistency_rating']),                    textcoords='offset points', xytext=(6, 3),                    fontsize=7.5, color='#e6edf3', alpha=0.9)    med_pts = summary_df['points'].median()    med_cr  = summary_df['consistency_rating'].median()    ax.axvline(med_pts, color='#8b949e', linestyle='--', alpha=0.5, linewidth=1)    ax.axhline(med_cr,  color='#8b949e', linestyle='--', alpha=0.5, linewidth=1)    pts_min = summary_df['points'].min()    pts_max = summary_df['points'].max()    ax.text(pts_min + 1, 96, 'Low pts / Consistent',  fontsize=8, color='#8b949e', alpha=0.7)    ax.text(pts_max - 16, 96, 'High pts / Consistent', fontsize=8, color='#8b949e', alpha=0.7)    ax.text(pts_min + 1, 4,  'Low pts / Volatile',    fontsize=8, color='#8b949e', alpha=0.7)    ax.text(pts_max - 16, 4,  'High pts / Volatile',   fontsize=8, color='#8b949e', alpha=0.7)    ax.set_xlabel('Season Standings Points', fontsize=12)    ax.set_ylabel('Consistency Rating (0=volatile, 100=consistent)', fontsize=12)    ax.set_title(f'NHL {season_label}: Points vs Consistency Rating', fontsize=14,                 fontweight='bold', pad=12)    east_patch  = mpatches.Patch(color='#1f6feb', alpha=0.8, label='Eastern Conf')    west_patch  = mpatches.Patch(color='#f78166', alpha=0.8, label='Western Conf')    play_patch  = plt.scatter([], [], c='white', s=130, alpha=1.0, marker='o',                               edgecolors='none', label='🏒 Playoff team (large)')    nonplay     = plt.scatter([], [], c='white', s=60, alpha=0.4, marker='s',                               edgecolors='none', label='Non-playoff (small/dim)')    pt_patch    = plt.scatter([], [], c='white', s=200, alpha=1.0, marker='*',                               edgecolors='#FFD700', linewidths=1.5,                               label='🏆 Presidents Trophy (gold border ★)')    ax.legend(handles=[east_patch, west_patch, play_patch, nonplay, pt_patch],              fontsize=9, framealpha=0.3)    ax.grid(True, alpha=0.3)    plt.tight_layout()    return figfig_s1 = plot_consistency_scatter(summary_2425, '2024-25', exp_2425, std_2425)fig_s1.savefig('nhl_scatter_2425.png', dpi=150, bbox_inches='tight', facecolor='#0d1117')plt.show()print("✅ Saved: nhl_scatter_2425.png")fig_s2 = plot_consistency_scatter(summary_2526, '2025-26', exp_2526, std_2526)fig_s2.savefig('nhl_scatter_2526.png', dpi=150, bbox_inches='tight', facecolor='#0d1117')plt.show()print("✅ Saved: nhl_scatter_2526.png")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="52c7c6e9" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_descent_bars(summary_df, season_label, expected, std):    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">5</span>))    fig.patch.set_facecolor(<span class="st">'#0d1117'</span>)    ax.set_facecolor(<span class="st">'#0d1117'</span>)    sorted_df  <span class="op">=</span> summary_df.sort_values(<span class="st">'descents'</span>)    bar_colors <span class="op">=</span> []    edge_colors <span class="op">=</span> []    edge_widths <span class="op">=</span> []    <span class="cf">for</span> _, row <span class="kw">in</span> sorted_df.iterrows():        base <span class="op">=</span> <span class="st">'#1f6feb'</span> <span class="cf">if</span> row[<span class="st">'conference'</span>] <span class="op">==</span> <span class="st">'Eastern'</span> <span class="cf">else</span> <span class="st">'#f78166'</span>        bar_colors.append(base)        <span class="cf">if</span> row[<span class="st">'presidents'</span>]:            edge_colors.append(<span class="st">'#FFD700'</span>)            edge_widths.append(<span class="fl">2.0</span>)        <span class="cf">elif</span> row[<span class="st">'playoff'</span>]:            edge_colors.append(<span class="st">'#3fb950'</span>)            edge_widths.append(<span class="fl">1.5</span>)        <span class="cf">else</span>:            edge_colors.append(<span class="st">'none'</span>)            edge_widths.append(<span class="dv">0</span>)    bars <span class="op">=</span> ax.bar(sorted_df[<span class="st">'abbrev'</span>], sorted_df[<span class="st">'descents'</span>],                  color<span class="op">=</span>bar_colors, alpha<span class="op">=</span><span class="fl">0.8</span>,                  edgecolor<span class="op">=</span>edge_colors, linewidth<span class="op">=</span>edge_widths, zorder<span class="op">=</span><span class="dv">3</span>)    ax.axhline(expected, color<span class="op">=</span><span class="st">'#f0e68c'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>, linewidth<span class="op">=</span><span class="fl">1.8</span>,               label<span class="op">=</span><span class="ss">f'E[descents] = </span><span class="sc">{</span>expected<span class="sc">:.1f}</span><span class="ss">'</span>, zorder<span class="op">=</span><span class="dv">4</span>)    ax.axhspan(expected <span class="op">-</span> std, expected <span class="op">+</span> std,               alpha<span class="op">=</span><span class="fl">0.12</span>, color<span class="op">=</span><span class="st">'#f0e68c'</span>, label<span class="op">=</span><span class="ss">f'±1 std (</span><span class="sc">{</span>std<span class="sc">:.1f}</span><span class="ss">)'</span>)    ax.axhspan(expected <span class="op">-</span> <span class="dv">2</span><span class="op">*</span>std, expected <span class="op">+</span> <span class="dv">2</span><span class="op">*</span>std,               alpha<span class="op">=</span><span class="fl">0.06</span>, color<span class="op">=</span><span class="st">'#f0e68c'</span>, label<span class="op">=</span><span class="ss">f'±2 std'</span>)    ax.set_xlabel(<span class="st">'Team'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)    ax.set_ylabel(<span class="st">'Descent Count'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)    ax.set_title(<span class="ss">f'NHL </span><span class="sc">{</span>season_label<span class="sc">}</span><span class="ss">: Descent Count vs League-Expected'</span>,                 fontsize<span class="op">=</span><span class="dv">13</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>, pad<span class="op">=</span><span class="dv">10</span>)    ax.tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">45</span>, labelsize<span class="op">=</span><span class="dv">8</span>)    ax.grid(<span class="va">True</span>, axis<span class="op">=</span><span class="st">'y'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)    east_p <span class="op">=</span> mpatches.Patch(color<span class="op">=</span><span class="st">'#1f6feb'</span>, alpha<span class="op">=</span><span class="fl">0.8</span>, label<span class="op">=</span><span class="st">'Eastern Conf'</span>)    west_p <span class="op">=</span> mpatches.Patch(color<span class="op">=</span><span class="st">'#f78166'</span>, alpha<span class="op">=</span><span class="fl">0.8</span>, label<span class="op">=</span><span class="st">'Western Conf'</span>)    play_p <span class="op">=</span> mpatches.Patch(edgecolor<span class="op">=</span><span class="st">'#3fb950'</span>, facecolor<span class="op">=</span><span class="st">'none'</span>,                             linewidth<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="st">'🏒 Playoff (green border)'</span>)    pt_p   <span class="op">=</span> mpatches.Patch(edgecolor<span class="op">=</span><span class="st">'#FFD700'</span>, facecolor<span class="op">=</span><span class="st">'none'</span>,                             linewidth<span class="op">=</span><span class="fl">2.0</span>, label<span class="op">=</span><span class="st">'🏆 Presidents Trophy (gold border)'</span>)    handles, labels <span class="op">=</span> ax.get_legend_handles_labels()    ax.legend(handles<span class="op">=</span>handles <span class="op">+</span> [east_p, west_p, play_p, pt_p],              fontsize<span class="op">=</span><span class="dv">8</span>, framealpha<span class="op">=</span><span class="fl">0.3</span>)    plt.tight_layout()    <span class="cf">return</span> figfig_d1 <span class="op">=</span> plot_descent_bars(summary_2425, <span class="st">'2024-25'</span>, exp_2425, std_2425)fig_d1.savefig(<span class="st">'nhl_descents_2425.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)plt.show()<span class="bu">print</span>(<span class="st">"✅ Saved: nhl_descents_2425.png"</span>)fig_d2 <span class="op">=</span> plot_descent_bars(summary_2526, <span class="st">'2025-26'</span>, exp_2526, std_2526)fig_d2.savefig(<span class="st">'nhl_descents_2526.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)plt.show()<span class="bu">print</span>(<span class="st">"✅ Saved: nhl_descents_2526.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="cell-10" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ═══════════════════════════════════════════════════════════════════════════# POST-DESCENT STICKINESS ANALYSIS## Conjecture: High-consistency, high-points teams have higher PDS_0# meaning after a descent to a loss they tend to stay there briefly# before snapping back — this clustering IS their consistency.# ═══════════════════════════════════════════════════════════════════════════# Full 82-game seasons only (no covid, no in-progress)pds_df = master[    (~master["covid"]) &amp;    (~master["in_progress"]) &amp;    (master["games"] &gt;= 75) &amp;    (master["pds0"].notna())].copy().reset_index(drop=True)print(f"Team-seasons in PDS analysis: {len(pds_df)}")print(f"PDS_0 — min:{pds_df['pds0'].min():.3f}  max:{pds_df['pds0'].max():.3f}  mean:{pds_df['pds0'].mean():.3f}")print(f"PDS_1 — available for {master[(~master['covid']) &amp; (~master['in_progress']) &amp; master['pds1'].notna()].shape[0]} team-seasons")# ── Correlations ──────────────────────────────────────────────────────────────r_cr,  p_cr  = stats.pearsonr(pds_df["consistency_rating"], pds_df["pds0"])r_pts, p_pts = stats.pearsonr(pds_df["points"],             pds_df["pds0"])print(f"\nCorrelations with PDS_0:")print(f"  CR  vs PDS_0:  r={r_cr:.4f}   p={p_cr:.4f}   {'Significant' if p_cr  &lt; 0.05 else 'Not significant'}")print(f"  Pts vs PDS_0:  r={r_pts:.4f}  p={p_pts:.4f}  {'Significant' if p_pts &lt; 0.05 else 'Not significant'}")# ── Top 16 by consistency rating ──────────────────────────────────────────────top16 = pds_df.nlargest(16, "consistency_rating")[[    "season_label","abbrev","points","descents",    "consistency_rating","pds0","pds1","drr","playoff","presidents"]].reset_index(drop=True)top16.index += 1print(f"\nTop 16 Most Consistent Team-Seasons:")print(top16.to_string())# ── T-test: top 16 PDS_0 vs rest ──────────────────────────────────────────────top16_idx = pds_df.nlargest(16, "consistency_rating").indexrest_pds0 = pds_df.loc[~pds_df.index.isin(top16_idx), "pds0"].dropna()top16_pds0 = pds_df.loc[pds_df.index.isin(top16_idx), "pds0"].dropna()t_stat, t_pval = stats.ttest_ind(top16_pds0, rest_pds0)print(f"\nTop 16 avg PDS_0:       {top16_pds0.mean():.4f}")print(f"Rest of dataset PDS_0:  {rest_pds0.mean():.4f}")print(f"T-test:  t={t_stat:.3f}  p={t_pval:.4f}  {'Significant' if t_pval &lt; 0.05 else 'Not significant'}")# ── Quadrant analysis: high CR + high points ──────────────────────────────────med_cr  = pds_df["consistency_rating"].median()med_pts = pds_df["points"].median()q_high_both = pds_df[(pds_df["consistency_rating"] &gt; med_cr) &amp; (pds_df["points"] &gt; med_pts)]q_high_cr   = pds_df[(pds_df["consistency_rating"] &gt; med_cr) &amp; (pds_df["points"] &lt;= med_pts)]q_high_pts  = pds_df[(pds_df["consistency_rating"] &lt;= med_cr) &amp; (pds_df["points"] &gt; med_pts)]q_low_both  = pds_df[(pds_df["consistency_rating"] &lt;= med_cr) &amp; (pds_df["points"] &lt;= med_pts)]print(f"\nPDS_0 by quadrant (median CR={med_cr:.0f}, median pts={med_pts:.0f}):")print(f"  High CR + High Pts (n={len(q_high_both):&gt;3}):  PDS_0 = {q_high_both['pds0'].mean():.4f}  ← The conjecture targets this group")print(f"  High CR + Low Pts  (n={len(q_high_cr):&gt;3}):  PDS_0 = {q_high_cr['pds0'].mean():.4f}")print(f"  Low  CR + High Pts (n={len(q_high_pts):&gt;3}):  PDS_0 = {q_high_pts['pds0'].mean():.4f}")print(f"  Low  CR + Low Pts  (n={len(q_low_both):&gt;3}):  PDS_0 = {q_low_both['pds0'].mean():.4f}")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="cell-11" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── 2x2 scatter grid: CR vs PDS_0, Pts vs PDS_0, and quadrant map ────────────top16_idx = pds_df.nlargest(16, "consistency_rating").indexfig, axes = plt.subplots(2, 2, figsize=(16, 12))fig.patch.set_facecolor("#0d1117")fig.suptitle(    "Post-Descent Stickiness at 0 (PDS_0) Analysis\n"    "After descending to a regulation loss, P(next game is also a regulation loss)",    fontsize=13, fontweight="bold", color="#e6edf3", y=1.01)def scatter_with_regression(ax, x_col, y_col, xlabel, title):    """Helper: scatter + regression + top16 labels."""    slope, intercept, r_val, p_val, se = stats.linregress(        pds_df[x_col], pds_df[y_col]    )    for idx, row in pds_df.iterrows():        color  = "#1f6feb" if row["conference"] == "Eastern" else "#f78166"        is_top = idx in top16_idx        ax.scatter(row[x_col], row[y_col],                   c=color, s=120 if is_top else 28,                   alpha=0.95 if is_top else 0.22,                   edgecolors="#FFD700" if row["presidents"] else "none",                   linewidths=1.2, zorder=4 if is_top else 2)        if is_top:            ax.annotate(f"{row['abbrev']} {row['season_label']}",                        (row[x_col], row[y_col]),                        textcoords="offset points", xytext=(5, 3),                        fontsize=6.5, color="#e6edf3", zorder=5)    x_line = np.linspace(pds_df[x_col].min(), pds_df[x_col].max(), 200)    y_line = slope * x_line + intercept    n      = len(pds_df)    x_mean = pds_df[x_col].mean()    ss_x   = ((pds_df[x_col] - x_mean)**2).sum()    se_b   = se * np.sqrt(1/n + (x_line - x_mean)**2 / ss_x)    ax.fill_between(x_line, y_line - 1.96*se_b, y_line + 1.96*se_b,                    alpha=0.15, color="#f0e68c")    ax.plot(x_line, y_line, color="#f0e68c", linewidth=2,            label=f"r={r_val:.3f}  p={p_val:.4f}")    ax.axvline(pds_df[x_col].median(), color="#8b949e",               linestyle="--", alpha=0.4, linewidth=1)    ax.axhline(pds_df[y_col].median(), color="#8b949e",               linestyle="--", alpha=0.4, linewidth=1)    ax.set_xlabel(xlabel, fontsize=10)    ax.set_ylabel("PDS_0 (Post-Descent Stickiness at 0)", fontsize=10)    ax.set_title(title, fontsize=10, color="#e6edf3")    ax.legend(fontsize=9, framealpha=0.3)    ax.grid(True, alpha=0.25)    ax.set_facecolor("#0d1117")    return r_val, p_valfor ax in axes.flat:    ax.set_facecolor("#0d1117")# Top-left: CR vs PDS_0r1, p1 = scatter_with_regression(    axes[0][0], "consistency_rating", "pds0",    "Consistency Rating (0=volatile, 100=consistent)",    "Consistency Rating vs PDS_0")# Top-right: Points vs PDS_0r2, p2 = scatter_with_regression(    axes[0][1], "points", "pds0",    "Season Standings Points",    "Season Points vs PDS_0")# Bottom-left: PDS_1 vs CR (secondary metric)pds1_df = master[    (~master["covid"]) &amp; (~master["in_progress"]) &amp;    (master["games"] &gt;= 75) &amp; (master["pds1"].notna())].copy().reset_index(drop=True)ax3 = axes[1][0]ax3.set_facecolor("#0d1117")if len(pds1_df) &gt; 10:    slope3, intercept3, r3, p3, se3 = stats.linregress(        pds1_df["consistency_rating"], pds1_df["pds1"]    )    colors3 = ["#1f6feb" if c == "Eastern" else "#f78166"               for c in pds1_df["conference"]]    ax3.scatter(pds1_df["consistency_rating"], pds1_df["pds1"],                c=colors3, s=28, alpha=0.35, zorder=2)    x3 = np.linspace(pds1_df["consistency_rating"].min(),                      pds1_df["consistency_rating"].max(), 200)    ax3.plot(x3, slope3 * x3 + intercept3, color="#f0e68c", linewidth=2,             label=f"r={r3:.3f}  p={p3:.4f}")    ax3.set_xlabel("Consistency Rating", fontsize=10)    ax3.set_ylabel("PDS_1 (Stickiness at OTL)", fontsize=10)    ax3.set_title("Consistency Rating vs PDS_1 (OTL stickiness)", fontsize=10, color="#e6edf3")    ax3.legend(fontsize=9, framealpha=0.3)    ax3.grid(True, alpha=0.25)else:    ax3.text(0.5, 0.5, "Insufficient PDS_1 data", ha="center", va="center",             transform=ax3.transAxes, color="#8b949e")# Bottom-right: Quadrant heatmap — avg PDS_0 by CR quartile x Points quartileax4 = axes[1][1]ax4.set_facecolor("#0d1117")pds_df2 = pds_df.copy()pds_df2["cr_q"]  = pd.qcut(pds_df2["consistency_rating"], 4,                             labels=["Q1(volatile)","Q2","Q3","Q4(consistent)"])pds_df2["pts_q"] = pd.qcut(pds_df2["points"], 4,                             labels=["Q1(low pts)","Q2","Q3","Q4(high pts)"])pivot = pds_df2.pivot_table(values="pds0", index="pts_q", columns="cr_q", aggfunc="mean")im = ax4.imshow(pivot.values, cmap="RdYlGn_r", aspect="auto",                vmin=0, vmax=pds_df["pds0"].max())ax4.set_xticks(range(len(pivot.columns)))ax4.set_xticklabels(pivot.columns, fontsize=8)ax4.set_yticks(range(len(pivot.index)))ax4.set_yticklabels(pivot.index, fontsize=8)ax4.set_xlabel("Consistency Rating Quartile", fontsize=10)ax4.set_ylabel("Points Quartile", fontsize=10)ax4.set_title("Avg PDS_0 by Points × Consistency Quartile(red=high stickiness, green=low)", fontsize=9, color="#e6edf3")for i in range(len(pivot.index)):    for j in range(len(pivot.columns)):        val = pivot.values[i, j]        if not np.isnan(val):            ax4.text(j, i, f"{val:.3f}", ha="center", va="center",                     fontsize=9, color="white", fontweight="bold")plt.colorbar(im, ax=ax4, label="Avg PDS_0", shrink=0.8)plt.tight_layout()plt.savefig("nhl_pds_analysis.png", dpi=150, bbox_inches="tight", facecolor="#0d1117")plt.show()print("Saved: nhl_pds_analysis.png")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="cell-12" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Top 16 bar chart + PDS_0 distribution comparison ────────────────────────top16_idx  = pds_df.nlargest(16, "consistency_rating").indextop16      = pds_df.loc[top16_idx].reset_index(drop=True)top16.index += 1rest_pds0  = pds_df.loc[~pds_df.index.isin(top16_idx), "pds0"].dropna()t_stat, t_pval = stats.ttest_ind(top16["pds0"].dropna(), rest_pds0)fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(17, 7))fig.patch.set_facecolor("#0d1117")fig.suptitle("Top 16 Most Consistent NHL Team-Seasons — PDS_0 Deep Dive",             fontsize=14, fontweight="bold", color="#e6edf3")# Left: horizontal bars ranked by CR, coloured by PDS_0ax1.set_facecolor("#0d1117")labels   = [f"{r['abbrev']}  {r['season_label']}" for _, r in top16.iterrows()]cr_vals  = top16["consistency_rating"].valuespds_vals = top16["pds0"].fillna(0).valuesnorm     = plt.Normalize(0, pds_df["pds0"].max())cmap     = plt.cm.RdYlGn_rcolors   = [cmap(norm(v)) for v in pds_vals]ax1.barh(range(len(labels)), cr_vals, color=colors, alpha=0.85, zorder=3)for i, (cr, pds, pts, playoff) in enumerate(        zip(cr_vals, pds_vals, top16["points"].values, top16["playoff"].values)):    marker = "🏒" if playoff else "  "    ax1.text(cr + 0.3, i,             f"PDS_0={pds:.3f}  {pts}pts {marker}",             va="center", fontsize=8, color="#e6edf3")ax1.set_yticks(range(len(labels)))ax1.set_yticklabels(labels, fontsize=9)ax1.set_xlabel("Consistency Rating", fontsize=10)ax1.set_title("Ranked by CR  (bar color = PDS_0: red=sticky, green=bounces back)",              fontsize=9, color="#e6edf3")ax1.grid(True, axis="x", alpha=0.3)ax1.invert_yaxis()sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)sm.set_array([])plt.colorbar(sm, ax=ax1, label="PDS_0", shrink=0.7)# Right: PDS_0 density — top 16 vs full dataset vs high-pts-high-CR quadrantax2.set_facecolor("#0d1117")med_cr  = pds_df["consistency_rating"].median()med_pts = pds_df["points"].median()elite   = pds_df[(pds_df["consistency_rating"] &gt; med_cr) &amp; (pds_df["points"] &gt; med_pts)]["pds0"].dropna()ax2.hist(pds_df["pds0"].dropna(), bins=20, color="#1f6feb", alpha=0.35,         label=f"All ({len(pds_df)})", density=True)ax2.hist(elite, bins=15, color="#3fb950", alpha=0.5,         label=f"High CR + High Pts (n={len(elite)})", density=True)ax2.hist(top16["pds0"].dropna(), bins=10, color="#f78166", alpha=0.7,         label=f"Top 16 CR", density=True)ax2.axvline(pds_df["pds0"].mean(),  color="#1f6feb", linestyle="--", linewidth=1.5,            label=f"All mean={pds_df['pds0'].mean():.3f}")ax2.axvline(elite.mean(),            color="#3fb950", linestyle="--", linewidth=1.5,            label=f"Elite mean={elite.mean():.3f}")ax2.axvline(top16["pds0"].mean(),   color="#f78166", linestyle="--", linewidth=1.5,            label=f"Top16 mean={top16['pds0'].mean():.3f}")ax2.set_xlabel("PDS_0", fontsize=10)ax2.set_ylabel("Density", fontsize=10)ax2.set_title(    f"PDS_0 Distribution\n"    f"Top16 vs Elite vs All  |  t={t_stat:.2f}  p={t_pval:.4f}  "    f"({'Significant' if t_pval &lt; 0.05 else 'Not significant'})",    fontsize=9, color="#e6edf3")ax2.legend(fontsize=8.5, framealpha=0.3)ax2.grid(True, alpha=0.3)plt.tight_layout()plt.savefig("nhl_top16_pds.png", dpi=150, bbox_inches="tight", facecolor="#0d1117")plt.show()# Final conjecture verdictprint("\n Conjecture Assessment")print(f"  CR  vs PDS_0:  r={r_cr:.4f}  p={p_cr:.4f}")print(f"  Pts vs PDS_0:  r={r_pts:.4f}  p={p_pts:.4f}")print(f"  Top 16 PDS_0 mean:     {top16['pds0'].mean():.4f}")print(f"  Elite quadrant mean:   {elite.mean():.4f}")print(f"  Full dataset mean:     {pds_df['pds0'].mean():.4f}")print(f"  T-test p (top16 vs rest): {t_pval:.4f}")print()if p_cr &lt; 0.05 and r_cr &gt; 0:    print("  CONJECTURE SUPPORTED: Consistent teams show higher PDS_0 —")    print("  after descending to a loss they tend to cluster losses before")    print("  snapping back, which is the mechanism behind their consistency.")elif p_cr &lt; 0.05 and r_cr &lt; 0:    print("  INVERSE FINDING: Consistent teams actually recover FASTER after")    print("  a descent — their losses do not cluster. Volatility drives loss clustering.")else:    print("  INCONCLUSIVE: No significant relationship found.")print("\nSaved: nhl_top16_pds.png")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="a9c60d68" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Theoretical expected descents over all possible length-82 strings ─────────## For any two adjacent positions i-1, i drawn i.i.d. from {0,1,2}# P(descent) = P(seq[i] &lt; seq[i-1])## Using empirical probabilities p0, p1, p2 derived from 2024-25 data:#   P(descent) = P(curr=0, prev=1) + P(curr=0, prev=2) + P(curr=1, prev=2)#              = p0*p1 + p0*p2 + p1*p2## For uniform {0,1,2}: p0=p1=p2=1/3 → P(descent) = 1/3 → E = 27.0## We already computed the empirical version above.# Here we also compute the uniform baseline for comparison.p_desc_uniform = 1/3e_desc_uniform = 81 * p_desc_uniformstd_desc_uniform = np.sqrt(81 * p_desc_uniform * (1 - p_desc_uniform))print("══ Expected Descents — Theoretical Analysis ════════════════════════════")print()print("  Uniform distribution (p0=p1=p2=1/3):")print(f"    P(descent)   = {p_desc_uniform:.4f}")print(f"    E[descents]  = {e_desc_uniform:.2f}")print(f"    Std          = {std_desc_uniform:.2f}")print()print("  Empirical 2024-25 distribution:")print(f"    P(0)={p0:.3f}, P(1)={p1:.3f}, P(2)={p2:.3f}")print(f"    P(descent)   = {p_descent:.4f}")print(f"    E[descents]  = {expected_desc:.2f}")print(f"    Std          = {std_desc:.2f}")print()print("  Note: The empirical baseline is preferred for z-score comparisons")print("  as it reflects the true distribution of NHL game outcomes.")print()print("── Z-scores (negative = fewer descents than expected = MORE consistent) ─")print()print(f"  {'Team':&lt;6} {'Descents':&gt;8} {'Z-Score':&gt;9} {'Interpretation'}")print(f"  {'────':&lt;6} {'────────':&gt;8} {'───────':&gt;9} {'───────────────────────────'}")for _, row in summary.sort_values('z_score').iterrows():    if row['z_score'] &lt;= -1.5:        interp = "⬛ Very consistent (streaky)"    elif row['z_score'] &lt;= -0.5:        interp = "🔵 Somewhat consistent"    elif row['z_score'] &lt;= 0.5:        interp = "⚪ Near average"    elif row['z_score'] &lt;= 1.5:        interp = "🟠 Somewhat volatile"    else:        interp = "🔴 Very volatile"    print(f"  {row['abbrev']:&lt;6} {row['descents']:&gt;8}   {row['z_score']:&gt;+7.2f}   {interp}")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="bbd4c12c" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> deep_dive(abbrev, season<span class="op">=</span>SEASON_2425):    <span class="st">"""    Full breakdown for a single team and season:    - Bar chart with descent highlights + indicator markers    - Cumulative points vs pace lines    """</span>    seq_dict   <span class="op">=</span> all_sequences[season]    summary_df <span class="op">=</span> summary_2425 <span class="cf">if</span> season <span class="op">==</span> SEASON_2425 <span class="cf">else</span> summary_2526    label      <span class="op">=</span> <span class="st">'2024-25'</span> <span class="cf">if</span> season <span class="op">==</span> SEASON_2425 <span class="cf">else</span> <span class="st">'2025-26'</span>    <span class="cf">if</span> abbrev <span class="kw">not</span> <span class="kw">in</span> seq_dict:        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>abbrev<span class="sc">}</span><span class="ss"> not found for </span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">"</span>)        <span class="cf">return</span>    seq    <span class="op">=</span> seq_dict[abbrev]    meta   <span class="op">=</span> {t[<span class="st">'abbrev'</span>]: t <span class="cf">for</span> t <span class="kw">in</span> teams}[abbrev]    pts    <span class="op">=</span> sum_points(seq)    desc   <span class="op">=</span> count_descents(seq)    cr_row <span class="op">=</span> summary_df.loc[summary_df[<span class="st">'abbrev'</span>] <span class="op">==</span> abbrev, <span class="st">'consistency_rating'</span>]    cr     <span class="op">=</span> cr_row.values[<span class="dv">0</span>] <span class="cf">if</span> <span class="bu">len</span>(cr_row) <span class="cf">else</span> <span class="dv">0</span>    z_row  <span class="op">=</span> summary_df.loc[summary_df[<span class="st">'abbrev'</span>] <span class="op">==</span> abbrev, <span class="st">'z_score'</span>]    z      <span class="op">=</span> z_row.values[<span class="dv">0</span>] <span class="cf">if</span> <span class="bu">len</span>(z_row) <span class="cf">else</span> <span class="dv">0</span>    color  <span class="op">=</span> team_color(meta[<span class="st">'conference'</span>])    games  <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">+</span> <span class="dv">1</span>))    cumulative <span class="op">=</span> np.cumsum(seq)    badges <span class="op">=</span> get_indicators(abbrev, season)    badge_str <span class="op">=</span> badge_label(abbrev, season)    fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">7</span>), sharex<span class="op">=</span><span class="va">True</span>)    fig.patch.set_facecolor(<span class="st">'#0d1117'</span>)    fig.suptitle(        <span class="ss">f"</span><span class="sc">{</span>meta[<span class="st">'name'</span>]<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>abbrev<span class="sc">}</span><span class="ss">)  —  </span><span class="sc">{</span>label<span class="sc">}</span><span class="ss"> Season</span><span class="sc">{</span>badge_str<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>        <span class="ss">f"</span><span class="sc">{</span>pts<span class="sc">}</span><span class="ss"> pts  |  </span><span class="sc">{</span>desc<span class="sc">}</span><span class="ss"> descents  |  CR </span><span class="sc">{</span>cr<span class="sc">:.0f}</span><span class="ss">  |  z = </span><span class="sc">{</span>z<span class="sc">:+.2f}</span><span class="ss">"</span>,        fontsize<span class="op">=</span><span class="dv">13</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>, color<span class="op">=</span><span class="st">'#e6edf3'</span>    )    <span class="co"># ── Top: bar chart ────────────────────────────────────────────────────────    ax1.set_facecolor('#0d1117')    descent_indices = set(i for i in range(1, len(seq)) if seq[i] &lt; seq[i-1])    bar_colors = []    for i, v in enumerate(seq):        if i in descent_indices:            bar_colors.append('#ff7b72')        elif v == 2:            bar_colors.append(color)        elif v == 1:            bar_colors.append('#8b949e')        else:            bar_colors.append('#21262d')    ax1.bar(games, seq, color=bar_colors, width=1.0, align='center',            edgecolor='none', zorder=3)    # President's Trophy star marker on last bar    if 'PT' in badges and seq:        last = len(seq)        ax1.annotate('★ Presidents Trophy', xy=(last, seq[-1]),                     xytext=(last - 10, 1.85), fontsize=9,                     color='#FFD700', fontweight='bold',                     arrowprops=dict(arrowstyle='-&gt;', color='#FFD700', lw=1.2))    # Playoff border    if 'P' in badges:        ax1.spines['top'].set_color('#3fb950')        ax1.spines['top'].set_linewidth(3.0)        ax1.spines['right'].set_color('#3fb950')        ax1.spines['right'].set_linewidth(3.0)    ax1.set_ylim(0, 2)    ax1.set_yticks([0, 1, 2])    ax1.set_ylabel('Points Earned', fontsize=10)    ax1.grid(True, axis='y', alpha=0.3, zorder=0)    win_p  = mpatches.Patch(color=color,     label='Win')    otl_p  = mpatches.Patch(color='#8b949e', label='OT/SO Loss')    loss_p = mpatches.Patch(color='#21262d', label='Reg Loss')    desc_p = mpatches.Patch(color='#ff7b72', label=f'Descent ({desc})')    ax1.legend(handles=[win_p, otl_p, loss_p, desc_p],               fontsize=9, framealpha=0.3, loc='upper right')    # ── Bottom: cumulative points ─────────────────────────────────────────────    ax2.set_facecolor('#0d1117')    pace_line   = [2 * g for g in games]    ax2.plot(games, pace_line, color='#8b949e', linestyle=':', linewidth=1,             alpha=0.5, label='2pt pace (max)')    league_ppg  = sum(sum(s) for s in seq_dict.values()) / sum(len(s) for s in seq_dict.values())    league_pace = [league_ppg * g for g in games]    ax2.plot(games, league_pace, color='#f0e68c', linestyle='--', linewidth=1,             alpha=0.6, label=f'League avg pace ({league_ppg:.2f} pt/gm)')    ax2.fill_between(games, cumulative, alpha=0.3, color=color)    ax2.plot(games, cumulative, color=color, linewidth=1.5, label='Cumulative pts')    ax2.set_xlim(1, max(82, len(seq)))    ax2.set_xlabel('Game Number', fontsize=10)    ax2.set_ylabel('Cumulative Points', fontsize=10)    ax2.grid(True, alpha=0.3)    ax2.legend(fontsize=9, framealpha=0.3)    plt.tight_layout()    fname = f'nhl_deepdive_{abbrev}_{label.replace("-","")}.png'    plt.savefig(fname, dpi=150, bbox_inches='tight', facecolor='#0d1117')    plt.show()    print(f"✅ Saved: {fname}")# ── Examples — change abbrev/season as desired ────────────────────────────────deep_dive('WPG', SEASON_2425)   # 2024-25 Presidents Trophy winnerdeep_dive('COL', SEASON_2526)   # 2025-26 Presidents Trophy winner</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="21a479a3" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> season_key, summary_df, label <span class="kw">in</span> [    (SEASON_2425, summary_2425, <span class="st">'2425'</span>),    (SEASON_2526, summary_2526, <span class="st">'2526'</span>),]:    export <span class="op">=</span> summary_df.copy()    export[<span class="st">'sequence'</span>] <span class="op">=</span> export[<span class="st">'abbrev'</span>].<span class="bu">map</span>(        <span class="kw">lambda</span> a: <span class="bu">str</span>(all_sequences[season_key].get(a, []))    )    fname <span class="op">=</span> <span class="ss">f'nhl_</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">_summary.csv'</span>    export.to_csv(fname, index<span class="op">=</span><span class="va">False</span>)    <span class="bu">print</span>(<span class="ss">f"✅ Exported: </span><span class="sc">{</span>fname<span class="sc">}</span><span class="ss">"</span>)<span class="bu">print</span>()<span class="bu">print</span>(<span class="st">"2024-25 Consistency Leaders:"</span>)<span class="bu">print</span>(summary_2425[[<span class="st">'abbrev'</span>,<span class="st">'name'</span>,<span class="st">'points'</span>,<span class="st">'descents'</span>,<span class="st">'z_score'</span>,<span class="st">'consistency_rating'</span>,<span class="st">'playoff'</span>,<span class="st">'presidents'</span>]]      .sort_values(<span class="st">'consistency_rating'</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">10</span>).to_string(index<span class="op">=</span><span class="va">False</span>))<span class="bu">print</span>()<span class="bu">print</span>(<span class="st">"2025-26 Consistency Leaders (in-progress):"</span>)<span class="bu">print</span>(summary_2526[[<span class="st">'abbrev'</span>,<span class="st">'name'</span>,<span class="st">'points'</span>,<span class="st">'descents'</span>,<span class="st">'z_score'</span>,<span class="st">'consistency_rating'</span>,<span class="st">'playoff'</span>,<span class="st">'presidents'</span>]]      .sort_values(<span class="st">'consistency_rating'</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">10</span>).to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,382 @@
+---
+title: "Descents, Consistency, and Post-Descent Stickiness"
+date: 2025-06-04
+categories: [consistency, sequence-analysis, methodology]
+description: "What if we stopped measuring what teams accumulate and started measuring how they behave? A sequence-based framework for NHL team consistency across 14 seasons."
+toc: true
+code-fold: true
+code-tools: true
+---
+
+## A Different Question
+
+Most NHL analytics starts with aggregation. How many goals did a team score?
+How many shots did they suppress? What was their expected goals percentage?
+These are useful questions, but they all share the same structure: sum up the
+season, divide by something, rank the teams.
+
+This project starts from a different place. Instead of asking *how much*, it
+asks *how*.
+
+Specifically: **how does a team's performance sequence across 82 games tell us
+something that the final standings don't?**
+
+Two teams can finish with 100 points and look completely different in terms of
+how they got there. One might reel off wins in long streaks, lose in clusters,
+and snap back. Another might grind out wins and losses in near-random alternation.
+Both are 100-point teams. But they are not the same team, and their paths to the
+playoffs — and through them — will look nothing alike.
+
+The framework here introduces three metrics built to capture this: **Descents**,
+**Consistency Rating (CR)**, and **Post-Descent Stickiness (PDS)**.
+
+---
+
+## The Data Model
+
+Every NHL game produces exactly one of three standings outcomes for a given team:
+
+$$
+\text{seq}[i] \in \{0, 1, 2\}
+$$
+
+Where:
+- $2$ = Win (2 points)
+- $1$ = OT/SO Loss (1 point)
+- $0$ = Regulation Loss (0 points)
+
+A full season is a length-82 sequence of these values. The entire analysis
+operates on these sequences, fetched from the NHL public API's club schedule
+endpoint:
+
+```
+GET https://api-web.nhle.com/v1/club-schedule-season/{abbrev}/{season}
+```
+
+The dataset covers **14 full 82-game seasons** from 2010-11 through 2024-25,
+plus the in-progress 2025-26 season. The 2012-13 lockout season (48 games) and
+the 2019-20 COVID season (shortened, bubble format) are excluded from the pooled
+baseline but flagged where they appear.
+
+---
+
+## Descents
+
+A **descent** is any position $i$ where the team's outcome is strictly worse
+than the previous game:
+
+$$
+\text{DESCENTS}(\text{seq}) = \sum_{i=1}^{81} \mathbf{1}[\text{seq}[i] < \text{seq}[i-1]]
+$$
+
+This is a simple count of backward steps in the sequence. A team that wins 10
+in a row and then loses has one descent. A team that alternates win-loss-win-loss
+has roughly 40 descents. The same total point accumulation can produce wildly
+different descent counts depending on how results are distributed across the
+season.
+
+### The Theoretical Baseline
+
+For any two adjacent positions in the sequence drawn from $\{0, 1, 2\}$, the
+probability of a descent depends on the empirical distribution of outcomes.
+Letting $p_0$, $p_1$, $p_2$ be the probabilities of each outcome:
+
+$$
+P(\text{descent}) = p_0 p_1 + p_0 p_2 + p_1 p_2
+$$
+
+Under a uniform distribution ($p_0 = p_1 = p_2 = \frac{1}{3}$):
+
+$$
+P(\text{descent}) = \frac{1}{3}, \quad E[\text{descents}] = 81 \times \frac{1}{3} = 27.0
+$$
+
+In practice, the empirical distribution is not uniform — wins are more common
+than regulation losses, which are more common than OTL results. The pooled
+baseline uses the actual empirical probabilities across all 14 seasons rather
+than the uniform assumption. This gives a more honest z-score comparison.
+
+### Z-Score and Consistency Rating
+
+For each team-season, we compute:
+
+$$
+z = \frac{\text{descents} - E[\text{descents}]}{\sigma_{\text{descents}}}
+$$
+
+Where $E[\text{descents}]$ and $\sigma$ come from the pooled 14-season baseline.
+**Negative z-scores mean fewer descents than expected — more consistent.**
+Positive z-scores mean more volatility.
+
+The **Consistency Rating (CR)** rescales this within each season to a 0–100
+scale for readability:
+
+$$
+\text{CR} = 100 \times \left(1 - \frac{z - z_{\min}}{z_{\max} - z_{\min}}\right)
+$$
+
+A CR of 100 is the most consistent team in the league that season. A CR of 0
+is the most volatile. The inversion ensures that higher = more consistent.
+
+---
+
+## Post-Descent Stickiness
+
+Descents and CR describe the *frequency* of backward steps. Post-Descent
+Stickiness (PDS) describes what happens *after* a descent — and this is where
+the real conjecture lives.
+
+**PDS at level $k$** is defined as: after descending to outcome $k$, what is
+the probability that the next game also produces outcome $k$?
+
+$$
+\text{PDS}_k = P\bigl(\text{seq}[i+1] = k \;\big|\; \text{seq}[i] = k,\; \text{seq}[i] < \text{seq}[i-1]\bigr)
+$$
+
+In plain terms: given that a team just had a bad result and it was worse than
+the game before, how likely are they to have the same bad result again?
+
+We focus on two variants:
+- **PDS₀**: After descending to a regulation loss, probability the next game
+  is also a regulation loss
+- **PDS₁**: After descending to an OTL, probability the next game is also
+  an OTL
+
+We also track the complementary metric, **Descent Recovery Rate (DRR)**:
+
+$$
+\text{DRR} = P\bigl(\text{seq}[i+1] > \text{seq}[i] \;\big|\; \text{seq}[i] < \text{seq}[i-1]\bigr)
+$$
+
+The fraction of the time a team genuinely bounces back after any descent.
+
+---
+
+## The Conjecture
+
+The central hypothesis of this work:
+
+> **High-consistency, high-points teams have higher PDS₀.** After descending
+> to a regulation loss, they tend to *stay there briefly* before snapping back
+> into a win streak. This clustering of losses is precisely the mechanism behind
+> their apparent consistency — they have few descents because their losses are
+> grouped together, not scattered randomly across the season.
+
+This is counterintuitive. It says that elite, consistent teams are *more likely*
+to follow a loss with another loss than average teams — not because they're
+worse, but because their loss events are structured differently. Volatility, by
+contrast, means losses are scattered: every win is followed by a loss, every
+loss by a win, producing many descents but no clustering.
+
+To test this formally, we compute Pearson correlations between PDS₀ and both
+CR and total standings points, across all valid team-seasons in the dataset
+(full 82-game seasons only, COVID season excluded).
+
+---
+
+## The Data Pipeline
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: setup
+
+import requests
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from scipy import stats
+import time
+import warnings
+warnings.filterwarnings('ignore')
+
+BASE_URL    = 'https://api-web.nhle.com/v1'
+SEASON_2425 = '20242025'
+SEASON_2526 = '20252026'
+
+HISTORICAL_SEASONS = [
+    '20102011','20112012','20132014','20142015','20152016',
+    '20162017','20172018','20182019','20192020','20202021',
+    '20212022','20222023','20232024','20242025'
+]
+COVID_SEASON = '20192020'
+
+print("Setup complete.")
+print(f"  Historical seasons: {len(HISTORICAL_SEASONS)}")
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: core-functions
+
+def count_descents(seq):
+    return sum(1 for i in range(1, len(seq)) if seq[i] < seq[i-1])
+
+def post_descent_stickiness(seq, landed_on=0):
+    """
+    P(seq[i+1] == landed_on | seq[i] == landed_on AND seq[i] < seq[i-1])
+    Returns None if no eligible descent positions exist.
+    """
+    if len(seq) < 3:
+        return None
+    eligible = [i for i in range(1, len(seq) - 1)
+                if seq[i] < seq[i-1] and seq[i] == landed_on]
+    if not eligible:
+        return None
+    sticky = sum(1 for i in eligible if seq[i+1] == landed_on)
+    return sticky / len(eligible)
+
+def descent_recovery_rate(seq):
+    """After any descent, fraction of time seq[i+1] > seq[i]."""
+    if len(seq) < 3:
+        return None
+    eligible = [i for i in range(1, len(seq) - 1) if seq[i] < seq[i-1]]
+    if not eligible:
+        return None
+    return sum(1 for i in eligible if seq[i+1] > seq[i]) / len(eligible)
+```
+
+The three core functions are deceptively simple. `count_descents` is a single
+pass. `post_descent_stickiness` finds every eligible position — where a descent
+landed on the specified value — and checks what came next. `descent_recovery_rate`
+is the complement: genuine bouncebacks after any descent.
+
+---
+
+## Consistency Rating Across 14 Seasons
+
+The master dataset contains roughly 450 team-seasons of full 82-game data.
+For each one we compute descents, z-score against the pooled baseline, and
+scale to CR. The CR is re-scaled within each season so it always represents
+relative standing in that year's league — a CR of 85 in a volatile season
+means something different than CR 85 in a consistently-played season.
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: consistency-rating
+
+def build_consistency_rating(seq, e_desc_pooled, std_desc_pooled):
+    desc = count_descents(seq)
+    z    = (desc - e_desc_pooled) / std_desc_pooled
+    return desc, z
+
+# Full build_master() and pooled baseline in the GitHub repo
+# Key formula reproduced here for reference:
+#
+# z = (descents - E[descents]) / std[descents]
+#
+# CR within season:
+# CR = 100 * (1 - (z - z_min) / (z_max - z_min))
+```
+
+::: {.callout-note}
+The full data fetch, pooled baseline computation, and master dataset build
+require ~8–12 minutes of API calls across 14 seasons. The complete notebook
+is in the [GitHub repo](https://github.com/corsi-isnt-enough/nhl-analytics).
+:::
+
+---
+
+## Testing the Conjecture
+
+With the master dataset built, the test is straightforward. We filter to
+full 82-game seasons (no COVID, no in-progress), require PDS₀ to be
+non-null (teams need at least a few descent-to-zero events), and compute
+Pearson correlations:
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: pds-correlations
+
+# From the full run — reproduced for reference:
+#
+# r_cr,  p_cr  = stats.pearsonr(pds_df["consistency_rating"], pds_df["pds0"])
+# r_pts, p_pts = stats.pearsonr(pds_df["points"],             pds_df["pds0"])
+#
+# Quadrant analysis:
+# q_high_both = pds_df[
+#     (pds_df["consistency_rating"] > median_cr) &
+#     (pds_df["points"] > median_pts)
+# ]
+```
+
+The scatter grid — CR vs PDS₀, Points vs PDS₀, PDS₁ vs CR, and a
+Points × CR quartile heatmap of average PDS₀ — is the primary visualization.
+The heatmap in particular shows whether the high-CR/high-points quadrant
+systematically differs from the others in PDS₀, which is the direct test
+of the conjecture.
+
+The t-test between the top 16 most consistent team-seasons and the rest of
+the dataset provides a significance check on whether that difference, if
+present, is real.
+
+---
+
+## What the Metrics Reveal
+
+The descent framework surfaces things that raw points totals hide:
+
+**Consistent elite teams** (high CR, high points) tend to have structured
+loss patterns — losses cluster, then the team runs. This is visible in the
+per-game bar charts: long blue win streaks punctuated by tight red descent
+clusters before the team reasserts itself.
+
+**Volatile teams** scatter wins and losses more randomly. Their descent count
+is high not because they lose more, but because their results alternate. The
+same final point total can be reached through a volatile or consistent path.
+
+**The PDS₀ signal** is the mechanism under the hood: if a consistent team's
+loss clustering is real and not a statistical artifact, their PDS₀ should
+be measurably higher than the league average. Losses beget losses briefly —
+and then the streak resumes.
+
+**The deep dive view** — a two-panel chart showing per-game outcome bars with
+descents highlighted in red, plus cumulative points vs league average pace —
+makes this visible for any team-season. The 2024-25 Winnipeg Jets (Presidents
+Trophy winners) are a natural starting point: high CR, strong points total,
+and a season that should show exactly the kind of structured loss clustering
+the conjecture predicts.
+
+---
+
+## Limitations and Open Questions
+
+**PDS is sample-limited at the team level.** A single 82-game season may
+produce only 15–25 descent-to-zero events for any one team. The per-team
+PDS estimate is noisy. The correlation analysis across 450+ team-seasons is
+more reliable, but individual team PDS values should be interpreted with
+appropriate caution.
+
+**The conjecture direction is not guaranteed.** The framework is set up to
+detect whether consistent teams have *higher* PDS₀, but the analysis
+is honest about the alternative finding: if consistent teams actually show
+*lower* PDS₀, that means they recover faster after losses — which is a
+different but equally interesting conclusion. The code reports which finding
+the data supports.
+
+**Sequences treat all losses as equivalent.** A regulation loss on a back-to-
+back in the last week of the season is not the same as a regulation loss in
+Game 3 of a playoff push. The sequence model doesn't know this. Weighting
+by game leverage or schedule context would be a meaningful extension.
+
+**CR is relative, not absolute.** A CR of 90 in a given season tells you
+where a team ranked in that year's distribution of consistency — it doesn't
+tell you what their absolute volatility was. Cross-season comparisons of CR
+values require care.
+
+---
+
+## Full Code
+
+The complete notebook — all data fetching, pooled baseline computation,
+master dataset construction, CR calculation, PDS analysis, and visualizations
+— is in the repo:
+
+👉 [github.com/corsi-isnt-enough/nhl-analytics](https://github.com/corsi-isnt-enough/nhl-analytics)
+
+Written for Python 3.8+ compatibility. Dependencies: pandas, numpy,
+matplotlib, scipy, requests.
