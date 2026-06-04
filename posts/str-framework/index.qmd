@@ -252,39 +252,17 @@ Three charts tell the story of what STR surfaces that PP%/PK% misses.
 
 **Chart 3** is the most diagnostic: a PP efficiency vs PK efficiency scatter plot with quadrant lines at league means. This separates the teams that are elite at both from the specialists, and it gives you a much cleaner picture than "team X has a 22% PP and 81% PK."
 
-```{python}
-#| echo: true
-#| code-fold: true
-#| label: chart-top15
-#| fig-cap: "Top 15 teams by composite STR. Positive values indicate above-average combined special teams performance."
+![STR Rankings — Top 15 Teams, 2024-25 Season (100-game sample)](str_rankings.png){fig-alt="Horizontal bar chart showing composite STR rankings for top 15 NHL teams"}
 
-# fig, ax = plt.subplots(figsize=(10, 6))
-# colors = ['#1a78cf' if v >= 0 else '#d62728' for v in plot_df['STR']]
-# bars = ax.barh(plot_df['team'][::-1], plot_df['STR'][::-1], color=colors[::-1])
-# ax.axvline(0, color='black', linewidth=0.8, linestyle='--')
-# ax.set_xlabel('Composite STR (z-score weighted)')
-# ax.set_title(f'Special Teams Rating — Top Teams')
-# plt.tight_layout()
-# plt.show()
-```
+**Chart 1** shows the composite STR ranking. Teams to the right of zero are above league average in combined special teams; teams to the left are below. The gap between the top and bottom of the chart reflects how much variance there actually is in special teams quality once you control for opportunity count and game context.
 
-```{python}
-#| echo: true
-#| code-fold: true
-#| label: chart-buckets
-#| fig-cap: "League-average PP Goals/60 broken down by score state. The non-uniformity across buckets is the empirical case for stratification."
+![League-Average PP Goals/60 by Score State, 2024-25](str_buckets.png){fig-alt="Bar chart showing league-average power play goals per 60 minutes broken down by score state bucket"}
 
-# fig, ax = plt.subplots(figsize=(8, 5))
-# ax.bar(league_pp.index, league_pp['goals_per_60'], color=bar_colors)
-# ax.set_ylabel('PP Goals per 60 minutes')
-# ax.set_title('League-Average PP Goals/60 by Score State')
-# plt.tight_layout()
-# plt.show()
-```
+**Chart 2** is the empirical case for stratification. If score state didn't matter, these bars would be roughly equal. They aren't — and that gap is exactly what PP% collapses when it treats all opportunities as equivalent.
 
-::: {.callout-note}
-Charts require running the full notebook locally or via the repo — the NHL API is live data and outputs will vary by sample size and season. See [GitHub](https://github.com/corsi-isnt-enough/nhl-analytics) for the full executable notebook.
-:::
+![PP Efficiency vs PK Efficiency — All Score States, 2024-25](str_scatter.png){fig-alt="Scatter plot of PP goals per 60 vs PK goals against per 60 with quadrant lines at league means"}
+
+**Chart 3** separates PP and PK contributions. The quadrant lines sit at league average for each axis — teams in the upper-left are elite at both, teams in the lower-right are specialists or struggling on one side. This view is impossible to construct from PP% and PK% alone.
 
 ---
 
