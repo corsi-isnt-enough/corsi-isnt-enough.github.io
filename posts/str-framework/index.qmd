@@ -6,6 +6,8 @@ description: "PP% and PK% are the most widely cited special teams metrics in hoc
 toc: true
 code-fold: true
 code-tools: true
+execute:
+  enabled: false
 ---
 
 ## The Problem with PP% and PK%
@@ -68,8 +70,6 @@ $$
 | Leading | $\Delta g = +1$ |
 | Protecting | $\Delta g \geq +2$ |
 
-This matters because conversion rates are not constant across buckets. Teams playing from behind generate more desperation offense; teams protecting leads may manage the power play more conservatively. The PK unit's behavior changes too — a team protecting a two-goal lead kills penalties differently than one that's already chasing.
-
 ### Composite STR
 
 To combine PP and PK performance into a single number, we z-score each component across the league, then apply a weighted sum:
@@ -88,7 +88,7 @@ The weights reflect a deliberate philosophy:
 - **Shot attempts/60 (10% each side)** — process quality is a secondary signal; volume matters but doesn't dominate
 - **PK components are inverted** — lower goals against and fewer shots against are better, so the z-scores are negated before weighting
 
-The result is a league-relative rating where positive values mean above average and negative values mean below average. It's interpretable the same way WAR or any other z-score-based metric is: units of standard deviations from the mean.
+The result is a league-relative rating where positive values mean above average and negative values mean below average.
 
 ---
 
@@ -177,104 +177,113 @@ def get_game_ids(season: str, game_type: int, max_games=None) -> list:
     print(f'Found {len(game_ids)} completed games for season {season}.')
     return game_ids
 
-
-def _walk_schedule_by_date(season: str, game_type: int, max_games=None) -> list:
-    """Fallback: walk week-by-week through the season to collect game IDs."""
-    from datetime import date, timedelta
-    year_start = int(season[:4])
-    start_date = date(year_start, 10, 1)
-    end_date   = date(year_start + 1, 6, 30)
-
-    game_ids = []
-    current  = start_date
-    while current <= end_date:
-        url  = f'{BASE_URL}/schedule/{current.isoformat()}'
-        resp = requests.get(url)
-        if resp.status_code == 200:
-            data = resp.json()
-            for week in data.get('gameWeek', []):
-                for game in week.get('games', []):
-                    if (game.get('gameType') == game_type and
-                            game.get('gameState') in ('OFF', 'FINAL')):
-                        game_ids.append(game['id'])
-        current += timedelta(weeks=1)
-        time.sleep(SLEEP_BETWEEN_REQUESTS)
-        if max_games and len(game_ids) >= max_games:
-            break
-
-    game_ids = list(dict.fromkeys(game_ids))
-    if max_games:
-        game_ids = game_ids[:max_games]
-    print(f'Walked schedule: found {len(game_ids)} completed games.')
-    return game_ids
-
-
 game_ids = get_game_ids(SEASON, GAME_TYPE, MAX_GAMES)
 ```
 
----
-
-## Aggregation and Rating
-
-Once raw penalty windows are collected across all games, we aggregate to team-bucket level, compute per-60 rates, and then roll up to the composite STR.
-
-```{python}
-#| echo: true
-#| code-fold: true
-#| label: str-composite
-
-def z_score(series):
-    return (series - series.mean()) / series.std()
-
-# str_df is already computed upstream — shown here for reference
-# str_df['z_pp_goals']  =  z_score(str_df['pp_goals_per_60'])
-# str_df['z_pp_volume'] =  z_score(str_df['pp_attempts_per_60'])
-# str_df['z_pk_ga']     = -z_score(str_df['pk_ga_per_60'])
-# str_df['z_pk_shots']  = -z_score(str_df['pk_shots_ag_per_60'])
-
-# str_df['STR'] = (str_df['z_pp_goals']  * 0.40 +
-#                  str_df['z_pp_volume'] * 0.10 +
-#                  str_df['z_pk_ga']    * 0.40 +
-#                  str_df['z_pk_shots'] * 0.10)
-```
-
-The full aggregation and STR computation code is in the [GitHub repo](https://github.com/corsi-isnt-enough/nhl-analytics).
+The run described here parsed **786 penalty windows across 100 games** — a solid sample for early-season analysis. Full-season results will naturally be more stable as sample sizes grow in each bucket.
 
 ---
 
-## Visualizations
+## Results: Score State Is Not Uniform
 
-Three charts tell the story of what STR surfaces that PP%/PK% misses.
+This is the empirical foundation of the entire framework. Before looking at team rankings, we need to verify that the score-state buckets actually produce different conversion rates — otherwise stratification adds no value.
 
-**Chart 1** ranks all teams by composite STR — the clearest top-line view of who is genuinely good at special teams versus who just had favorable opportunity counts.
+![League-Average PP Goals/60 by Score State, 2024-25 (100-game sample)](str_buckets.png){fig-alt="Bar chart showing league-average power play goals per 60 minutes broken down by score state bucket"}
 
-**Chart 2** breaks down league-average PP Goals/60 across the five score-state buckets. This is the core empirical motivation for the framework: conversion rates are not flat across game context. The Chasing and Trailing buckets consistently show different patterns than Neutral and Protecting — the distribution matters.
+The chart above shows league-average PP Goals/60 for each of the five score-state buckets across the 100-game sample. The variation is striking. Teams on the power play while **Chasing** (down 2 or more goals) convert at 10.51 goals per 60 minutes — nearly 70% higher than the Neutral rate of 6.79. The **Leading** bucket comes in at 8.52, while **Protecting** drops to 6.22.
 
-**Chart 3** is the most diagnostic: a PP efficiency vs PK efficiency scatter plot with quadrant lines at league means. This separates the teams that are elite at both from the specialists, and it gives you a much cleaner picture than "team X has a 22% PP and 81% PK."
+This is the core empirical case for stratification. PP% sees none of this. A team that runs a lot of power plays while chasing will look better in PP% than a team that runs the same number while protecting leads, even if the underlying skill level is identical. The context is doing work that PP% attributes to the team.
+
+The variation also makes intuitive sense. When a team is chasing, the penalty kill unit is under pressure — the opposition is desperate, generating more shots and more urgency. When a team is protecting a big lead, both teams often play more conservatively. These are genuinely different situations and the data confirms it.
+
+---
+
+## Results: The STR Rankings
+
+With per-60 rates computed and z-scored across the league, the composite STR ranks all 32 teams. Here are the full results from the 2024-25 sample:
 
 ![STR Rankings — Top 15 Teams, 2024-25 Season (100-game sample)](str_rankings.png){fig-alt="Horizontal bar chart showing composite STR rankings for top 15 NHL teams"}
 
-**Chart 1** shows the composite STR ranking. Teams to the right of zero are above league average in combined special teams; teams to the left are below. The gap between the top and bottom of the chart reflects how much variance there actually is in special teams quality once you control for opportunity count and game context.
+The chart shows the top 15 teams by composite STR. The x-axis is in z-score weighted units — a value of 1.0 means one standard deviation above the league mean in combined special teams performance.
 
-![League-Average PP Goals/60 by Score State, 2024-25](str_buckets.png){fig-alt="Bar chart showing league-average power play goals per 60 minutes broken down by score state bucket"}
+**Winnipeg (WPG)** leads the league at 1.283, and it is not particularly close. Their STR score reflects a power play running at 19.33 goals per 60 minutes combined across all score states, paired with a penalty kill conceding only 5.62 goals per 60. Both numbers rank among the best in the league.
 
-**Chart 2** is the empirical case for stratification. If score state didn't matter, these bars would be roughly equal. They aren't — and that gap is exactly what PP% collapses when it treats all opportunities as equivalent.
+**Ottawa (OTT)** ranks second at 1.098. Their PP rate of 19.24 goals per 60 is comparable to Winnipeg, but their shot attempt volume on the power play is actually higher (81.38 attempts per 60 versus Winnipeg's 65.74), suggesting a more process-driven approach that generates chances at a high rate.
 
-![PP Efficiency vs PK Efficiency — All Score States, 2024-25](str_scatter.png){fig-alt="Scatter plot of PP goals per 60 vs PK goals against per 60 with quadrant lines at league means"}
+**Vancouver (VAN)** rounds out the top three at 0.674, with a strong PK (4.98 goals against per 60) carrying much of their rating.
 
-**Chart 3** separates PP and PK contributions. The quadrant lines sit at league average for each axis — teams in the upper-left are elite at both, teams in the lower-right are specialists or struggling on one side. This view is impossible to construct from PP% and PK% alone.
+At the bottom of the rankings, **Edmonton (EDM)** sits last at -1.241, driven primarily by a penalty kill conceding 14.39 goals per 60 minutes — the worst mark in the league in this sample. This is notable given Edmonton's reputation as an offensive powerhouse; their power play is functional but their PK is dragging the composite rating down significantly.
+
+**Buffalo (BUF)** at -0.979 and **Seattle (SEA)** at -0.913 round out the bottom three, both suffering from poor PK performance in the sample.
+
+The full rankings table:
+
+| Rank | Team | PP Goals/60 | PP Attempts/60 | PK GA/60 | STR |
+|------|------|-------------|----------------|----------|-----|
+| 1 | WPG | 19.33 | 65.74 | 5.62 | 1.283 |
+| 2 | OTT | 19.24 | 81.38 | 7.81 | 1.098 |
+| 3 | VAN | 12.41 | 69.52 | 4.98 | 0.674 |
+| 4 | NJD | 8.54 | 99.88 | 4.33 | 0.605 |
+| 5 | DAL | 2.91 | 85.92 | 1.35 | 0.563 |
+| 6 | UTA | 9.88 | 74.66 | 4.54 | 0.560 |
+| 7 | MIN | 14.13 | 90.81 | 8.90 | 0.555 |
+| 8 | FLA | 9.27 | 71.84 | 4.74 | 0.461 |
+| 9 | MTL | 6.11 | 54.95 | 3.48 | 0.349 |
+| 10 | NSH | 6.53 | 130.55 | 5.48 | 0.310 |
+| 11 | CGY | 14.67 | 60.15 | 9.32 | 0.265 |
+| 12 | VGK | 11.06 | 108.42 | 10.70 | 0.175 |
+| 13 | PIT | 9.46 | 97.30 | 8.76 | 0.166 |
+| 14 | CAR | 7.41 | 79.01 | 6.20 | 0.154 |
+| 15 | NYR | 6.53 | 88.18 | 6.05 | 0.024 |
+| 16 | TOR | 3.44 | 79.18 | 4.96 | 0.005 |
+| 17 | CHI | 10.88 | 89.73 | 10.77 | -0.000 |
+| 18 | COL | 13.78 | 63.91 | 12.05 | -0.075 |
+| 19 | PHI | 7.75 | 62.00 | 6.95 | -0.118 |
+| 20 | WSH | 3.89 | 71.27 | 5.55 | -0.226 |
+| 21 | CBJ | 6.40 | 91.20 | 8.35 | -0.242 |
+| 22 | SJS | 6.05 | 102.90 | 8.91 | -0.248 |
+| 23 | LAK | 8.08 | 76.18 | 9.52 | -0.277 |
+| 24 | DET | 5.45 | 95.35 | 9.88 | -0.351 |
+| 25 | ANA | 0.00 | 84.00 | 6.81 | -0.429 |
+| 26 | STL | 5.60 | 60.16 | 6.85 | -0.474 |
+| 27 | TBL | 6.98 | 109.30 | 12.22 | -0.545 |
+| 28 | BOS | 4.34 | 69.47 | 9.88 | -0.562 |
+| 29 | NYI | 4.66 | 96.21 | 10.14 | -0.567 |
+| 30 | SEA | 6.28 | 68.04 | 13.92 | -0.913 |
+| 31 | BUF | 0.00 | 93.85 | 10.01 | -0.979 |
+| 32 | EDM | 3.07 | 78.23 | 14.39 | -1.241 |
 
 ---
 
-## What This Changes
+## Results: PP vs PK Efficiency
 
-The most important thing STR tells you that PP%/PK% doesn't is **where** a team's special teams performance comes from.
+The scatter plot below separates PP and PK contributions, making it possible to see which teams are elite at one, both, or neither.
 
-A team can have an average PP% but a genuinely elite power play in Neutral and Leading situations — and a poor one when chasing, which inflates their opportunity count without producing much. PP% treats those situations identically. STR doesn't.
+![PP Efficiency vs PK Efficiency — All Score States, 2024-25](str_scatter.png){fig-alt="Scatter plot of PP goals per 60 vs PK goals against per 60 with quadrant lines at league means"}
 
-Similarly, a penalty kill unit that looks mediocre by PK% might be doing most of its damage prevention in the highest-leverage situations (Neutral, Protecting) and conceding in lower-stakes contexts. That's a very different team than one with the same PK% that struggles in close games.
+Each dot is a team. The x-axis shows PP Goals/60 (higher is better) and the y-axis shows PK Goals Against/60 (lower is better). The dashed lines sit at the league mean for each axis, dividing the chart into four quadrants. Teams in the lower-right are above average at both — elite special teams overall. Teams in the upper-left are below average at both.
 
-The per-60 normalization also handles a subtle but real bias: teams that play from behind a lot will accumulate more power play opportunities in the Chasing bucket, not because they're bad at special teams, but because they spend more time losing. PP% doesn't adjust for this. STR separates the signal.
+A few things stand out immediately.
+
+**Dallas (DAL)** sits alone in the lower-left quadrant — an unusual position. Their PP Goals/60 is just 2.91, ranking near the bottom of the league, but their PK Goals Against/60 is only 1.35, the best penalty kill in this sample by a significant margin. This is a team being carried entirely by their PK, and PP% would never surface this cleanly.
+
+**New Jersey (NJD)** is an interesting case near the league mean on both axes but with an exceptionally high PP Attempts/60 of 99.88. Their power play generates volume but hasn't converted it into goals in this sample — a process-outcome gap worth watching as the season continues.
+
+**Edmonton (EDM)** appears in the upper-left — their PK giving up 14.39 goals per 60 is the clear outlier at the top of the chart, confirming what the rankings table showed.
+
+**Winnipeg (WPG)** and **Ottawa (OTT)** both sit in the lower-right quadrant, confirming their top-two composite rankings. They are genuinely good at both sides of special teams, not just one.
+
+---
+
+## Deep Dive: Winnipeg Jets
+
+As the top-ranked team by STR, the Jets are worth examining by score state in detail.
+
+The left panel shows PP Goals/60 by score state bucket. The Jets' leading bucket stands out at 42.86 goals per 60 — an exceptional rate, though in a small sample (only 3 minutes of PP time while leading by one). Their Protecting bucket is also strong at 20.74 goals per 60 across 14 minutes of ice time, which is a more meaningful sample. Their Trailing and Neutral power play rates are solid but not exceptional.
+
+The right panel shows PK Goals Against/60. The Jets concede at 10.91 goals per 60 while Chasing — their worst bucket — but hold to 6.09 in the Neutral bucket and a perfect 0.00 in both Trailing and Leading situations. The Protecting bucket shows no data (NaN), meaning they had no power plays to kill while protecting a big lead in this sample.
+
+What the Jets' profile shows is a team that is particularly dangerous on the power play when they have a lead, and disciplined on the PK in the most common game situations (Neutral, Trailing, Leading). This is a different story than PP% tells.
 
 ---
 
@@ -290,7 +299,7 @@ No framework is complete on first pass. A few honest caveats:
 
 **Sample size at the bucket level is thin.** Particularly for Chasing and Protecting, teams may have relatively few minutes in a single season. The per-60 rates are unbiased but noisy. Bayesian shrinkage toward league mean would be a principled improvement.
 
-These are the next directions. The notebook is open — if any of these interest you, fork it and build.
+**This sample covers 100 games.** The full 2024-25 regular season is 1,312 games. Rankings will stabilize considerably with the full dataset and some of the more extreme per-60 values (like the Jets' 42.86 in the Leading bucket) will regress toward true rates.
 
 ---
 
