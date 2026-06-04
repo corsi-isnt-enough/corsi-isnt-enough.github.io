@@ -3,8 +3,10 @@ title: ""
 page-layout: full
 toc: false
 code-tools: false
+image: banner.png
 ---
 
+![](banner.png){width="100%" style="border-radius: 8px; margin-bottom: 2rem;"}
 # Corsi Isn't Enough
 
 ### Going deeper than the numbers everyone already knows.
