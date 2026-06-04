@@ -456,6 +456,18 @@ Note
 </div>
 <p>The scatter grid — CR vs PDS₀, Points vs PDS₀, PDS₁ vs CR, and a Points × CR quartile heatmap of average PDS₀ — is the primary visualization. The heatmap in particular shows whether the high-CR/high-points quadrant systematically differs from the others in PDS₀, which is the direct test of the conjecture.</p>
 <p>The t-test between the top 16 most consistent team-seasons and the rest of the dataset provides a significance check on whether that difference, if present, is real.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="nhl_top16_pds.png" class="img-fluid figure-img" alt="Side-by-side chart showing top 16 consistent team-seasons by CR with PDS0 color coding, and density distributions of PDS0 for different groups"></p>
+<figcaption>Top 16 most consistent NHL team-seasons ranked by CR, colored by PDS₀, with PDS₀ distribution comparison across groups</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="nhl_pds_analysis.png" class="img-fluid figure-img" alt="2x2 grid of scatter plots and heatmap showing relationships between consistency rating, standings points, and post-descent stickiness metrics"></p>
+<figcaption>PDS₀ analysis — CR vs PDS₀, Points vs PDS₀, PDS₁ vs CR, and average PDS₀ by Points × Consistency quartile heatmap</figcaption>
+</figure>
+</div>
 <hr>
 </section>
 <section id="what-the-metrics-reveal" class="level2">
@@ -465,6 +477,12 @@ Note
 <p><strong>Volatile teams</strong> scatter wins and losses more randomly. Their descent count is high not because they lose more, but because their results alternate. The same final point total can be reached through a volatile or consistent path.</p>
 <p><strong>The PDS₀ signal</strong> is the mechanism under the hood: if a consistent team’s loss clustering is real and not a statistical artifact, their PDS₀ should be measurably higher than the league average. Losses beget losses briefly — and then the streak resumes.</p>
 <p><strong>The deep dive view</strong> — a two-panel chart showing per-game outcome bars with descents highlighted in red, plus cumulative points vs league average pace — makes this visible for any team-season. The 2024-25 Winnipeg Jets (Presidents Trophy winners) are a natural starting point: high CR, strong points total, and a season that should show exactly the kind of structured loss clustering the conjecture predicts.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="nhl_deepdive_WPG_202425.png" class="img-fluid figure-img" alt="Two-panel chart showing Winnipeg Jets 2024-25 season game-by-game results and cumulative points trajectory"></p>
+<figcaption>Winnipeg Jets 2024-25 — per-game outcomes with descents highlighted in red, and cumulative points vs league average pace</figcaption>
+</figure>
+</div>
 <hr>
 </section>
 <section id="limitations-and-open-questions" class="level2">
@@ -1255,72 +1273,78 @@ Note
 <span id="cb7-322"><a href="#cb7-322" aria-hidden="true" tabindex="-1"></a>the dataset provides a significance check on whether that difference, if</span>
 <span id="cb7-323"><a href="#cb7-323" aria-hidden="true" tabindex="-1"></a>present, is real.</span>
 <span id="cb7-324"><a href="#cb7-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-325"><a href="#cb7-325" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb7-325"><a href="#cb7-325" aria-hidden="true" tabindex="-1"></a><span class="al">![Top 16 most consistent NHL team-seasons ranked by CR, colored by PDS₀, with PDS₀ distribution comparison across groups](nhl_top16_pds.png)</span>{fig-alt="Side-by-side chart showing top 16 consistent team-seasons by CR with PDS0 color coding, and density distributions of PDS0 for different groups"}</span>
 <span id="cb7-326"><a href="#cb7-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-327"><a href="#cb7-327" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the Metrics Reveal</span></span>
+<span id="cb7-327"><a href="#cb7-327" aria-hidden="true" tabindex="-1"></a><span class="al">![PDS₀ analysis — CR vs PDS₀, Points vs PDS₀, PDS₁ vs CR, and average PDS₀ by Points × Consistency quartile heatmap](nhl_pds_analysis.png)</span>{fig-alt="2x2 grid of scatter plots and heatmap showing relationships between consistency rating, standings points, and post-descent stickiness metrics"}</span>
 <span id="cb7-328"><a href="#cb7-328" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-329"><a href="#cb7-329" aria-hidden="true" tabindex="-1"></a>The descent framework surfaces things that raw points totals hide:</span>
+<span id="cb7-329"><a href="#cb7-329" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb7-330"><a href="#cb7-330" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-331"><a href="#cb7-331" aria-hidden="true" tabindex="-1"></a>**Consistent elite teams** (high CR, high points) tend to have structured</span>
-<span id="cb7-332"><a href="#cb7-332" aria-hidden="true" tabindex="-1"></a>loss patterns — losses cluster, then the team runs. This is visible in the</span>
-<span id="cb7-333"><a href="#cb7-333" aria-hidden="true" tabindex="-1"></a>per-game bar charts: long blue win streaks punctuated by tight red descent</span>
-<span id="cb7-334"><a href="#cb7-334" aria-hidden="true" tabindex="-1"></a>clusters before the team reasserts itself.</span>
-<span id="cb7-335"><a href="#cb7-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-336"><a href="#cb7-336" aria-hidden="true" tabindex="-1"></a>**Volatile teams** scatter wins and losses more randomly. Their descent count</span>
-<span id="cb7-337"><a href="#cb7-337" aria-hidden="true" tabindex="-1"></a>is high not because they lose more, but because their results alternate. The</span>
-<span id="cb7-338"><a href="#cb7-338" aria-hidden="true" tabindex="-1"></a>same final point total can be reached through a volatile or consistent path.</span>
+<span id="cb7-331"><a href="#cb7-331" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the Metrics Reveal</span></span>
+<span id="cb7-332"><a href="#cb7-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-333"><a href="#cb7-333" aria-hidden="true" tabindex="-1"></a>The descent framework surfaces things that raw points totals hide:</span>
+<span id="cb7-334"><a href="#cb7-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-335"><a href="#cb7-335" aria-hidden="true" tabindex="-1"></a>**Consistent elite teams** (high CR, high points) tend to have structured</span>
+<span id="cb7-336"><a href="#cb7-336" aria-hidden="true" tabindex="-1"></a>loss patterns — losses cluster, then the team runs. This is visible in the</span>
+<span id="cb7-337"><a href="#cb7-337" aria-hidden="true" tabindex="-1"></a>per-game bar charts: long blue win streaks punctuated by tight red descent</span>
+<span id="cb7-338"><a href="#cb7-338" aria-hidden="true" tabindex="-1"></a>clusters before the team reasserts itself.</span>
 <span id="cb7-339"><a href="#cb7-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-340"><a href="#cb7-340" aria-hidden="true" tabindex="-1"></a>**The PDS₀ signal** is the mechanism under the hood: if a consistent team's</span>
-<span id="cb7-341"><a href="#cb7-341" aria-hidden="true" tabindex="-1"></a>loss clustering is real and not a statistical artifact, their PDS₀ should</span>
-<span id="cb7-342"><a href="#cb7-342" aria-hidden="true" tabindex="-1"></a>be measurably higher than the league average. Losses beget losses briefly —</span>
-<span id="cb7-343"><a href="#cb7-343" aria-hidden="true" tabindex="-1"></a>and then the streak resumes.</span>
-<span id="cb7-344"><a href="#cb7-344" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-345"><a href="#cb7-345" aria-hidden="true" tabindex="-1"></a>**The deep dive view** — a two-panel chart showing per-game outcome bars with</span>
-<span id="cb7-346"><a href="#cb7-346" aria-hidden="true" tabindex="-1"></a>descents highlighted in red, plus cumulative points vs league average pace —</span>
-<span id="cb7-347"><a href="#cb7-347" aria-hidden="true" tabindex="-1"></a>makes this visible for any team-season. The 2024-25 Winnipeg Jets (Presidents</span>
-<span id="cb7-348"><a href="#cb7-348" aria-hidden="true" tabindex="-1"></a>Trophy winners) are a natural starting point: high CR, strong points total,</span>
-<span id="cb7-349"><a href="#cb7-349" aria-hidden="true" tabindex="-1"></a>and a season that should show exactly the kind of structured loss clustering</span>
-<span id="cb7-350"><a href="#cb7-350" aria-hidden="true" tabindex="-1"></a>the conjecture predicts.</span>
-<span id="cb7-351"><a href="#cb7-351" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-352"><a href="#cb7-352" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb7-353"><a href="#cb7-353" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-354"><a href="#cb7-354" aria-hidden="true" tabindex="-1"></a><span class="fu">## Limitations and Open Questions</span></span>
+<span id="cb7-340"><a href="#cb7-340" aria-hidden="true" tabindex="-1"></a>**Volatile teams** scatter wins and losses more randomly. Their descent count</span>
+<span id="cb7-341"><a href="#cb7-341" aria-hidden="true" tabindex="-1"></a>is high not because they lose more, but because their results alternate. The</span>
+<span id="cb7-342"><a href="#cb7-342" aria-hidden="true" tabindex="-1"></a>same final point total can be reached through a volatile or consistent path.</span>
+<span id="cb7-343"><a href="#cb7-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-344"><a href="#cb7-344" aria-hidden="true" tabindex="-1"></a>**The PDS₀ signal** is the mechanism under the hood: if a consistent team's</span>
+<span id="cb7-345"><a href="#cb7-345" aria-hidden="true" tabindex="-1"></a>loss clustering is real and not a statistical artifact, their PDS₀ should</span>
+<span id="cb7-346"><a href="#cb7-346" aria-hidden="true" tabindex="-1"></a>be measurably higher than the league average. Losses beget losses briefly —</span>
+<span id="cb7-347"><a href="#cb7-347" aria-hidden="true" tabindex="-1"></a>and then the streak resumes.</span>
+<span id="cb7-348"><a href="#cb7-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-349"><a href="#cb7-349" aria-hidden="true" tabindex="-1"></a>**The deep dive view** — a two-panel chart showing per-game outcome bars with</span>
+<span id="cb7-350"><a href="#cb7-350" aria-hidden="true" tabindex="-1"></a>descents highlighted in red, plus cumulative points vs league average pace —</span>
+<span id="cb7-351"><a href="#cb7-351" aria-hidden="true" tabindex="-1"></a>makes this visible for any team-season. The 2024-25 Winnipeg Jets (Presidents</span>
+<span id="cb7-352"><a href="#cb7-352" aria-hidden="true" tabindex="-1"></a>Trophy winners) are a natural starting point: high CR, strong points total,</span>
+<span id="cb7-353"><a href="#cb7-353" aria-hidden="true" tabindex="-1"></a>and a season that should show exactly the kind of structured loss clustering</span>
+<span id="cb7-354"><a href="#cb7-354" aria-hidden="true" tabindex="-1"></a>the conjecture predicts.</span>
 <span id="cb7-355"><a href="#cb7-355" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-356"><a href="#cb7-356" aria-hidden="true" tabindex="-1"></a>**PDS is sample-limited at the team level.** A single 82-game season may</span>
-<span id="cb7-357"><a href="#cb7-357" aria-hidden="true" tabindex="-1"></a>produce only 15–25 descent-to-zero events for any one team. The per-team</span>
-<span id="cb7-358"><a href="#cb7-358" aria-hidden="true" tabindex="-1"></a>PDS estimate is noisy. The correlation analysis across 450+ team-seasons is</span>
-<span id="cb7-359"><a href="#cb7-359" aria-hidden="true" tabindex="-1"></a>more reliable, but individual team PDS values should be interpreted with</span>
-<span id="cb7-360"><a href="#cb7-360" aria-hidden="true" tabindex="-1"></a>appropriate caution.</span>
+<span id="cb7-356"><a href="#cb7-356" aria-hidden="true" tabindex="-1"></a><span class="al">![Winnipeg Jets 2024-25 — per-game outcomes with descents highlighted in red, and cumulative points vs league average pace](nhl_deepdive_WPG_202425.png)</span>{fig-alt="Two-panel chart showing Winnipeg Jets 2024-25 season game-by-game results and cumulative points trajectory"}</span>
+<span id="cb7-357"><a href="#cb7-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-358"><a href="#cb7-358" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb7-359"><a href="#cb7-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-360"><a href="#cb7-360" aria-hidden="true" tabindex="-1"></a><span class="fu">## Limitations and Open Questions</span></span>
 <span id="cb7-361"><a href="#cb7-361" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-362"><a href="#cb7-362" aria-hidden="true" tabindex="-1"></a>**The conjecture direction is not guaranteed.** The framework is set up to</span>
-<span id="cb7-363"><a href="#cb7-363" aria-hidden="true" tabindex="-1"></a>detect whether consistent teams have *higher* PDS₀, but the analysis</span>
-<span id="cb7-364"><a href="#cb7-364" aria-hidden="true" tabindex="-1"></a>is honest about the alternative finding: if consistent teams actually show</span>
-<span id="cb7-365"><a href="#cb7-365" aria-hidden="true" tabindex="-1"></a>*lower* PDS₀, that means they recover faster after losses — which is a</span>
-<span id="cb7-366"><a href="#cb7-366" aria-hidden="true" tabindex="-1"></a>different but equally interesting conclusion. The code reports which finding</span>
-<span id="cb7-367"><a href="#cb7-367" aria-hidden="true" tabindex="-1"></a>the data supports.</span>
-<span id="cb7-368"><a href="#cb7-368" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-369"><a href="#cb7-369" aria-hidden="true" tabindex="-1"></a>**Sequences treat all losses as equivalent.** A regulation loss on a back-to-</span>
-<span id="cb7-370"><a href="#cb7-370" aria-hidden="true" tabindex="-1"></a>back in the last week of the season is not the same as a regulation loss in</span>
-<span id="cb7-371"><a href="#cb7-371" aria-hidden="true" tabindex="-1"></a>Game 3 of a playoff push. The sequence model doesn't know this. Weighting</span>
-<span id="cb7-372"><a href="#cb7-372" aria-hidden="true" tabindex="-1"></a>by game leverage or schedule context would be a meaningful extension.</span>
-<span id="cb7-373"><a href="#cb7-373" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-374"><a href="#cb7-374" aria-hidden="true" tabindex="-1"></a>**CR is relative, not absolute.** A CR of 90 in a given season tells you</span>
-<span id="cb7-375"><a href="#cb7-375" aria-hidden="true" tabindex="-1"></a>where a team ranked in that year's distribution of consistency — it doesn't</span>
-<span id="cb7-376"><a href="#cb7-376" aria-hidden="true" tabindex="-1"></a>tell you what their absolute volatility was. Cross-season comparisons of CR</span>
-<span id="cb7-377"><a href="#cb7-377" aria-hidden="true" tabindex="-1"></a>values require care.</span>
-<span id="cb7-378"><a href="#cb7-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-379"><a href="#cb7-379" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb7-380"><a href="#cb7-380" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-381"><a href="#cb7-381" aria-hidden="true" tabindex="-1"></a><span class="fu">## Full Code</span></span>
-<span id="cb7-382"><a href="#cb7-382" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-383"><a href="#cb7-383" aria-hidden="true" tabindex="-1"></a>The complete notebook — all data fetching, pooled baseline computation,</span>
-<span id="cb7-384"><a href="#cb7-384" aria-hidden="true" tabindex="-1"></a>master dataset construction, CR calculation, PDS analysis, and visualizations</span>
-<span id="cb7-385"><a href="#cb7-385" aria-hidden="true" tabindex="-1"></a>— is in the repo:</span>
+<span id="cb7-362"><a href="#cb7-362" aria-hidden="true" tabindex="-1"></a>**PDS is sample-limited at the team level.** A single 82-game season may</span>
+<span id="cb7-363"><a href="#cb7-363" aria-hidden="true" tabindex="-1"></a>produce only 15–25 descent-to-zero events for any one team. The per-team</span>
+<span id="cb7-364"><a href="#cb7-364" aria-hidden="true" tabindex="-1"></a>PDS estimate is noisy. The correlation analysis across 450+ team-seasons is</span>
+<span id="cb7-365"><a href="#cb7-365" aria-hidden="true" tabindex="-1"></a>more reliable, but individual team PDS values should be interpreted with</span>
+<span id="cb7-366"><a href="#cb7-366" aria-hidden="true" tabindex="-1"></a>appropriate caution.</span>
+<span id="cb7-367"><a href="#cb7-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-368"><a href="#cb7-368" aria-hidden="true" tabindex="-1"></a>**The conjecture direction is not guaranteed.** The framework is set up to</span>
+<span id="cb7-369"><a href="#cb7-369" aria-hidden="true" tabindex="-1"></a>detect whether consistent teams have *higher* PDS₀, but the analysis</span>
+<span id="cb7-370"><a href="#cb7-370" aria-hidden="true" tabindex="-1"></a>is honest about the alternative finding: if consistent teams actually show</span>
+<span id="cb7-371"><a href="#cb7-371" aria-hidden="true" tabindex="-1"></a>*lower* PDS₀, that means they recover faster after losses — which is a</span>
+<span id="cb7-372"><a href="#cb7-372" aria-hidden="true" tabindex="-1"></a>different but equally interesting conclusion. The code reports which finding</span>
+<span id="cb7-373"><a href="#cb7-373" aria-hidden="true" tabindex="-1"></a>the data supports.</span>
+<span id="cb7-374"><a href="#cb7-374" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-375"><a href="#cb7-375" aria-hidden="true" tabindex="-1"></a>**Sequences treat all losses as equivalent.** A regulation loss on a back-to-</span>
+<span id="cb7-376"><a href="#cb7-376" aria-hidden="true" tabindex="-1"></a>back in the last week of the season is not the same as a regulation loss in</span>
+<span id="cb7-377"><a href="#cb7-377" aria-hidden="true" tabindex="-1"></a>Game 3 of a playoff push. The sequence model doesn't know this. Weighting</span>
+<span id="cb7-378"><a href="#cb7-378" aria-hidden="true" tabindex="-1"></a>by game leverage or schedule context would be a meaningful extension.</span>
+<span id="cb7-379"><a href="#cb7-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-380"><a href="#cb7-380" aria-hidden="true" tabindex="-1"></a>**CR is relative, not absolute.** A CR of 90 in a given season tells you</span>
+<span id="cb7-381"><a href="#cb7-381" aria-hidden="true" tabindex="-1"></a>where a team ranked in that year's distribution of consistency — it doesn't</span>
+<span id="cb7-382"><a href="#cb7-382" aria-hidden="true" tabindex="-1"></a>tell you what their absolute volatility was. Cross-season comparisons of CR</span>
+<span id="cb7-383"><a href="#cb7-383" aria-hidden="true" tabindex="-1"></a>values require care.</span>
+<span id="cb7-384"><a href="#cb7-384" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-385"><a href="#cb7-385" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb7-386"><a href="#cb7-386" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-387"><a href="#cb7-387" aria-hidden="true" tabindex="-1"></a>👉 <span class="co">[</span><span class="ot">github.com/corsi-isnt-enough/nhl-analytics</span><span class="co">](https://github.com/corsi-isnt-enough/nhl-analytics)</span></span>
+<span id="cb7-387"><a href="#cb7-387" aria-hidden="true" tabindex="-1"></a><span class="fu">## Full Code</span></span>
 <span id="cb7-388"><a href="#cb7-388" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-389"><a href="#cb7-389" aria-hidden="true" tabindex="-1"></a>Written for Python 3.8+ compatibility. Dependencies: pandas, numpy,</span>
-<span id="cb7-390"><a href="#cb7-390" aria-hidden="true" tabindex="-1"></a>matplotlib, scipy, requests.</span>
+<span id="cb7-389"><a href="#cb7-389" aria-hidden="true" tabindex="-1"></a>The complete notebook — all data fetching, pooled baseline computation,</span>
+<span id="cb7-390"><a href="#cb7-390" aria-hidden="true" tabindex="-1"></a>master dataset construction, CR calculation, PDS analysis, and visualizations</span>
+<span id="cb7-391"><a href="#cb7-391" aria-hidden="true" tabindex="-1"></a>— is in the repo:</span>
+<span id="cb7-392"><a href="#cb7-392" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-393"><a href="#cb7-393" aria-hidden="true" tabindex="-1"></a>👉 <span class="co">[</span><span class="ot">github.com/corsi-isnt-enough/nhl-analytics</span><span class="co">](https://github.com/corsi-isnt-enough/nhl-analytics)</span></span>
+<span id="cb7-394"><a href="#cb7-394" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-395"><a href="#cb7-395" aria-hidden="true" tabindex="-1"></a>Written for Python 3.8+ compatibility. Dependencies: pandas, numpy,</span>
+<span id="cb7-396"><a href="#cb7-396" aria-hidden="true" tabindex="-1"></a>matplotlib, scipy, requests.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

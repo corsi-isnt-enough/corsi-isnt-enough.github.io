@@ -314,6 +314,10 @@ The t-test between the top 16 most consistent team-seasons and the rest of
 the dataset provides a significance check on whether that difference, if
 present, is real.
 
+![Top 16 most consistent NHL team-seasons ranked by CR, colored by PDS₀, with PDS₀ distribution comparison across groups](nhl_top16_pds.png){fig-alt="Side-by-side chart showing top 16 consistent team-seasons by CR with PDS0 color coding, and density distributions of PDS0 for different groups"}
+
+![PDS₀ analysis — CR vs PDS₀, Points vs PDS₀, PDS₁ vs CR, and average PDS₀ by Points × Consistency quartile heatmap](nhl_pds_analysis.png){fig-alt="2x2 grid of scatter plots and heatmap showing relationships between consistency rating, standings points, and post-descent stickiness metrics"}
+
 ---
 
 ## What the Metrics Reveal
@@ -340,6 +344,8 @@ makes this visible for any team-season. The 2024-25 Winnipeg Jets (Presidents
 Trophy winners) are a natural starting point: high CR, strong points total,
 and a season that should show exactly the kind of structured loss clustering
 the conjecture predicts.
+
+![Winnipeg Jets 2024-25 — per-game outcomes with descents highlighted in red, and cumulative points vs league average pace](nhl_deepdive_WPG_202425.png){fig-alt="Two-panel chart showing Winnipeg Jets 2024-25 season game-by-game results and cumulative points trajectory"}
 
 ---
 
