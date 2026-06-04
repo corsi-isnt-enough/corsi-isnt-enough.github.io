@@ -2,3 +2,5 @@
 **/*.quarto_ipynb
 posts/sequence-metrics/*.png
 posts/sequence-metrics/*.ipynb
+posts/sequence-metrics/*.png
+posts/sequence-metrics/*.ipynb
