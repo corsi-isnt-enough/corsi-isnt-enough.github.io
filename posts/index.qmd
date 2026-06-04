@@ -1,0 +1,10 @@
+---
+title: "Posts"
+listing:
+  contents: "*/index.qmd"
+  sort: "date desc"
+  type: default
+  categories: true
+page-layout: full
+toc: false
+---
