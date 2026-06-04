@@ -1,0 +1,325 @@
+---
+title: "Special Teams Rating: A Better Framework"
+date: 2025-06-04
+categories: [special-teams, methodology, power-play, penalty-kill]
+description: "PP% and PK% are the most widely cited special teams metrics in hockey. They are also among the most misleading. Here's a ground-up replacement."
+toc: true
+code-fold: true
+code-tools: true
+---
+
+## The Problem with PP% and PK%
+
+Ask anyone to evaluate a team's special teams and the first thing they reach for is PP% and PK%. Power play percentage: goals scored divided by opportunities. Penalty kill percentage: opportunities killed without conceding. Simple, intuitive, universally reported.
+
+Also quietly broken.
+
+Here's the core issue: **both metrics treat all special teams time as equivalent**, when it clearly isn't. A two-minute power play when you're down three goals in the third period is a completely different situation — in terms of strategy, urgency, and opponent behavior — than a power play when you're protecting a one-goal lead in the second. Teams change how they play. Goaltenders change how they play. The underlying rates of scoring chance generation shift meaningfully across these contexts.
+
+When you collapse all of that into a single percentage, you're averaging over a distribution that shouldn't be averaged. You're measuring outcomes, not quality. And you're throwing away some of the most useful signal in the data.
+
+There's a second problem: **opportunity count as the denominator is unstable**. A team that takes 10 power plays in a sample scores on 2 of them: 20%. A team that takes 40 power plays scores on 8: also 20%. These are treated as equivalent, but the second estimate is far more reliable. Per-60 metrics, where time-on-ice is the denominator, normalize this properly.
+
+This post introduces **Special Teams Rating (STR)** — a framework built from play-by-play data that replaces both problems with something more honest.
+
+---
+
+## The Framework
+
+STR has three components that build on each other:
+
+1. **Per-60 normalization** — replace opportunity counts with time-on-ice as the denominator
+2. **Score-state stratification** — split all special teams events into five game-context buckets
+3. **Composite z-score rating** — combine PP and PK components into a single team ranking
+
+### Per-60 Normalization
+
+For any team $t$ in any score-state bucket $b$, define:
+
+$$
+\text{PP Goals/60}_{t,b} = \frac{\text{PP Goals}_{t,b}}{\text{PP TOI}_{t,b}} \times 60
+$$
+
+$$
+\text{PK GA/60}_{t,b} = \frac{\text{PK Goals Against}_{t,b}}{\text{PK TOI}_{t,b}} \times 60
+$$
+
+Where TOI is measured in minutes from the raw play-by-play. This immediately solves the sample-size distortion: a team with 3 minutes of power play time in a given bucket simply has a noisier estimate, not an artificially inflated or deflated percentage.
+
+We also track shot attempt volume as a process quality measure:
+
+$$
+\text{PP Attempts/60}_{t,b} = \frac{\text{SOG} + \text{Missed} + \text{Blocked}}{\text{PP TOI}_{t,b}} \times 60
+$$
+
+### Score-State Stratification
+
+Every penalty in the data is classified at the moment it is called. The goal differential from the power play team's perspective determines the bucket:
+
+$$
+\Delta g = \text{Goals}_{PP\text{ team}} - \text{Goals}_{PK\text{ team}} \quad \text{at time of penalty}
+$$
+
+| Bucket | Condition |
+|--------|-----------|
+| Chasing | $\Delta g \leq -2$ |
+| Trailing | $\Delta g = -1$ |
+| Neutral | $\Delta g = 0$ |
+| Leading | $\Delta g = +1$ |
+| Protecting | $\Delta g \geq +2$ |
+
+This matters because conversion rates are not constant across buckets. Teams playing from behind generate more desperation offense; teams protecting leads may manage the power play more conservatively. The PK unit's behavior changes too — a team protecting a two-goal lead kills penalties differently than one that's already chasing.
+
+### Composite STR
+
+To combine PP and PK performance into a single number, we z-score each component across the league, then apply a weighted sum:
+
+$$
+z_x = \frac{x - \bar{x}}{\sigma_x}
+$$
+
+$$
+\text{STR}_t = 0.40 \cdot z_{\text{PP Goals/60}} + 0.10 \cdot z_{\text{PP Attempts/60}} - 0.40 \cdot z_{\text{PK GA/60}} - 0.10 \cdot z_{\text{PK Shots Against/60}}
+$$
+
+The weights reflect a deliberate philosophy:
+
+- **Goals/60 (40% each side)** — outcomes are the primary signal
+- **Shot attempts/60 (10% each side)** — process quality is a secondary signal; volume matters but doesn't dominate
+- **PK components are inverted** — lower goals against and fewer shots against are better, so the z-scores are negated before weighting
+
+The result is a league-relative rating where positive values mean above average and negative values mean below average. It's interpretable the same way WAR or any other z-score-based metric is: units of standard deviations from the mean.
+
+---
+
+## The Data Pipeline
+
+Everything runs off the NHL public API's play-by-play endpoint:
+
+```
+GET https://api-web.nhle.com/v1/gamecenter/{game_id}/play-by-play
+```
+
+For each game, we make three passes through the event stream:
+
+**Pass 1 — Score reconstruction.** Walk every event in chronological order, maintaining a live running score for both teams. This is necessary because the API does not store cumulative score on non-goal events — we have to reconstruct it ourselves.
+
+**Pass 2 — Penalty window identification.** For each `penalty` event, record the PP team, PK team, start time, nominal duration, and the score state at the moment the penalty was called (from Pass 1's running tally).
+
+**Pass 3 — Event tagging.** For each penalty window, collect all shot-type events (`shot-on-goal`, `goal`, `missed-shot`, `blocked-shot`) that fall within the window's time range, attributed to the correct team. One important detail: a power play goal ends a minor penalty early, so we detect that and clip the window's actual end time accordingly.
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: dependencies
+
+import requests
+import pandas as pd
+import numpy as np
+import time
+from tqdm.notebook import tqdm
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import warnings
+warnings.filterwarnings('ignore')
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.float_format', '{:.3f}'.format)
+
+BASE_URL = 'https://api-web.nhle.com/v1'
+print('Libraries loaded.')
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: config
+
+SEASON        = '20242025'
+GAME_TYPE     = 2          # 2 = regular season, 3 = playoffs
+MAX_GAMES     = 100
+SLEEP_BETWEEN_REQUESTS = 0.25
+
+def score_state_bucket(goal_diff: int) -> str:
+    if   goal_diff <=  -2: return 'Chasing'
+    elif goal_diff ==  -1: return 'Trailing'
+    elif goal_diff ==   0: return 'Neutral'
+    elif goal_diff ==   1: return 'Leading'
+    else:                  return 'Protecting'
+
+BUCKET_ORDER = ['Chasing', 'Trailing', 'Neutral', 'Leading', 'Protecting']
+print(f'Config: season={SEASON}, game_type={GAME_TYPE}, max_games={MAX_GAMES}')
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: fetch-game-ids
+
+def get_game_ids(season: str, game_type: int, max_games=None) -> list:
+    """Pull all completed regular-season game IDs via the schedule endpoint."""
+    url = f'{BASE_URL}/schedule/season/{season}/{game_type}'
+    resp = requests.get(url)
+    if resp.status_code != 200:
+        print(f'Schedule endpoint returned {resp.status_code}, falling back to date-range walk.')
+        return _walk_schedule_by_date(season, game_type, max_games)
+
+    data = resp.json()
+    game_ids = []
+    for week in data.get('gameWeek', []):
+        for game in week.get('games', []):
+            if game.get('gameState') in ('OFF', 'FINAL'):
+                game_ids.append(game['id'])
+
+    if max_games:
+        game_ids = game_ids[:max_games]
+
+    print(f'Found {len(game_ids)} completed games for season {season}.')
+    return game_ids
+
+
+def _walk_schedule_by_date(season: str, game_type: int, max_games=None) -> list:
+    """Fallback: walk week-by-week through the season to collect game IDs."""
+    from datetime import date, timedelta
+    year_start = int(season[:4])
+    start_date = date(year_start, 10, 1)
+    end_date   = date(year_start + 1, 6, 30)
+
+    game_ids = []
+    current  = start_date
+    while current <= end_date:
+        url  = f'{BASE_URL}/schedule/{current.isoformat()}'
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            data = resp.json()
+            for week in data.get('gameWeek', []):
+                for game in week.get('games', []):
+                    if (game.get('gameType') == game_type and
+                            game.get('gameState') in ('OFF', 'FINAL')):
+                        game_ids.append(game['id'])
+        current += timedelta(weeks=1)
+        time.sleep(SLEEP_BETWEEN_REQUESTS)
+        if max_games and len(game_ids) >= max_games:
+            break
+
+    game_ids = list(dict.fromkeys(game_ids))
+    if max_games:
+        game_ids = game_ids[:max_games]
+    print(f'Walked schedule: found {len(game_ids)} completed games.')
+    return game_ids
+
+
+game_ids = get_game_ids(SEASON, GAME_TYPE, MAX_GAMES)
+```
+
+---
+
+## Aggregation and Rating
+
+Once raw penalty windows are collected across all games, we aggregate to team-bucket level, compute per-60 rates, and then roll up to the composite STR.
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: str-composite
+
+def z_score(series):
+    return (series - series.mean()) / series.std()
+
+# str_df is already computed upstream — shown here for reference
+# str_df['z_pp_goals']  =  z_score(str_df['pp_goals_per_60'])
+# str_df['z_pp_volume'] =  z_score(str_df['pp_attempts_per_60'])
+# str_df['z_pk_ga']     = -z_score(str_df['pk_ga_per_60'])
+# str_df['z_pk_shots']  = -z_score(str_df['pk_shots_ag_per_60'])
+
+# str_df['STR'] = (str_df['z_pp_goals']  * 0.40 +
+#                  str_df['z_pp_volume'] * 0.10 +
+#                  str_df['z_pk_ga']    * 0.40 +
+#                  str_df['z_pk_shots'] * 0.10)
+```
+
+The full aggregation and STR computation code is in the [GitHub repo](https://github.com/corsi-isnt-enough/nhl-analytics).
+
+---
+
+## Visualizations
+
+Three charts tell the story of what STR surfaces that PP%/PK% misses.
+
+**Chart 1** ranks all teams by composite STR — the clearest top-line view of who is genuinely good at special teams versus who just had favorable opportunity counts.
+
+**Chart 2** breaks down league-average PP Goals/60 across the five score-state buckets. This is the core empirical motivation for the framework: conversion rates are not flat across game context. The Chasing and Trailing buckets consistently show different patterns than Neutral and Protecting — the distribution matters.
+
+**Chart 3** is the most diagnostic: a PP efficiency vs PK efficiency scatter plot with quadrant lines at league means. This separates the teams that are elite at both from the specialists, and it gives you a much cleaner picture than "team X has a 22% PP and 81% PK."
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: chart-top15
+#| fig-cap: "Top 15 teams by composite STR. Positive values indicate above-average combined special teams performance."
+
+# fig, ax = plt.subplots(figsize=(10, 6))
+# colors = ['#1a78cf' if v >= 0 else '#d62728' for v in plot_df['STR']]
+# bars = ax.barh(plot_df['team'][::-1], plot_df['STR'][::-1], color=colors[::-1])
+# ax.axvline(0, color='black', linewidth=0.8, linestyle='--')
+# ax.set_xlabel('Composite STR (z-score weighted)')
+# ax.set_title(f'Special Teams Rating — Top Teams')
+# plt.tight_layout()
+# plt.show()
+```
+
+```{python}
+#| echo: true
+#| code-fold: true
+#| label: chart-buckets
+#| fig-cap: "League-average PP Goals/60 broken down by score state. The non-uniformity across buckets is the empirical case for stratification."
+
+# fig, ax = plt.subplots(figsize=(8, 5))
+# ax.bar(league_pp.index, league_pp['goals_per_60'], color=bar_colors)
+# ax.set_ylabel('PP Goals per 60 minutes')
+# ax.set_title('League-Average PP Goals/60 by Score State')
+# plt.tight_layout()
+# plt.show()
+```
+
+::: {.callout-note}
+Charts require running the full notebook locally or via the repo — the NHL API is live data and outputs will vary by sample size and season. See [GitHub](https://github.com/corsi-isnt-enough/nhl-analytics) for the full executable notebook.
+:::
+
+---
+
+## What This Changes
+
+The most important thing STR tells you that PP%/PK% doesn't is **where** a team's special teams performance comes from.
+
+A team can have an average PP% but a genuinely elite power play in Neutral and Leading situations — and a poor one when chasing, which inflates their opportunity count without producing much. PP% treats those situations identically. STR doesn't.
+
+Similarly, a penalty kill unit that looks mediocre by PK% might be doing most of its damage prevention in the highest-leverage situations (Neutral, Protecting) and conceding in lower-stakes contexts. That's a very different team than one with the same PK% that struggles in close games.
+
+The per-60 normalization also handles a subtle but real bias: teams that play from behind a lot will accumulate more power play opportunities in the Chasing bucket, not because they're bad at special teams, but because they spend more time losing. PP% doesn't adjust for this. STR separates the signal.
+
+---
+
+## Limitations and Next Steps
+
+No framework is complete on first pass. A few honest caveats:
+
+**The z-score weights are somewhat arbitrary.** The 40/10/40/10 split reflects a reasonable prior — outcomes dominate process — but it hasn't been validated against long-run predictive accuracy. A natural extension is to fit these weights against future season performance and see what the data prefers.
+
+**5v3 situations are included and probably shouldn't be.** A two-man advantage is a fundamentally different situation from a standard power play. The current implementation doesn't distinguish between them. Filtering or separately modeling 5v3 windows would improve signal quality.
+
+**Score state is set at penalty call time, not dynamically.** A power play that starts at 0-0 but crosses into a lead-change mid-window is still classified in the original bucket. Dynamic re-bucketing mid-window would be more accurate but considerably more complex.
+
+**Sample size at the bucket level is thin.** Particularly for Chasing and Protecting, teams may have relatively few minutes in a single season. The per-60 rates are unbiased but noisy. Bayesian shrinkage toward league mean would be a principled improvement.
+
+These are the next directions. The notebook is open — if any of these interest you, fork it and build.
+
+---
+
+## Full Code
+
+The complete notebook — including all data fetching, parsing, aggregation, STR computation, and visualization — is available in the repo:
+
+👉 [github.com/corsi-isnt-enough/nhl-analytics](https://github.com/corsi-isnt-enough/nhl-analytics)
+
+The notebook is written for Python 3.8+ compatibility and has no dependencies beyond the standard scientific stack (pandas, numpy, matplotlib, requests, tqdm).

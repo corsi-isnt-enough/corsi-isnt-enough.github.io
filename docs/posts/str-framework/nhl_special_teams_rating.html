@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>NHL Contextual Special Teams Rating – Corsi Isn’t Enough</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-ccafe2c99a4564d55934ca8539ca9f46.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-67899a0544166b2f85d65ce54e7f18ed.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Corsi Isn’t Enough</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../posts/"> 
+<span class="menu-text">Posts</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/corsi-isnt-enough/nhl-analytics"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://corsiistenough.substack.com"> <i class="bi bi-substack" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-this-builds" id="toc-what-this-builds" class="nav-link active" data-scroll-target="#what-this-builds">What this builds</a></li>
+  <li><a href="#data-source" id="toc-data-source" class="nav-link" data-scroll-target="#data-source">Data source</a></li>
+  <li><a href="#what-we-extract-from-pbp" id="toc-what-we-extract-from-pbp" class="nav-link" data-scroll-target="#what-we-extract-from-pbp">What we extract from PBP</a></li>
+  <li><a href="#configuration" id="toc-configuration" class="nav-link" data-scroll-target="#configuration">1. Configuration</a></li>
+  <li><a href="#fetch-game-ids-for-the-season" id="toc-fetch-game-ids-for-the-season" class="nav-link" data-scroll-target="#fetch-game-ids-for-the-season">2. Fetch game IDs for the season</a></li>
+  <li><a href="#parse-play-by-play-into-special-teams-events" id="toc-parse-play-by-play-into-special-teams-events" class="nav-link" data-scroll-target="#parse-play-by-play-into-special-teams-events">3. Parse play-by-play into special teams events</a></li>
+  <li><a href="#pull-data-for-all-games" id="toc-pull-data-for-all-games" class="nav-link" data-scroll-target="#pull-data-for-all-games">4. Pull data for all games</a></li>
+  <li><a href="#aggregate-to-team-level-special-teams-metrics" id="toc-aggregate-to-team-level-special-teams-metrics" class="nav-link" data-scroll-target="#aggregate-to-team-level-special-teams-metrics">5. Aggregate to team-level special teams metrics</a></li>
+  <li><a href="#composite-special-teams-rating-str" id="toc-composite-special-teams-rating-str" class="nav-link" data-scroll-target="#composite-special-teams-rating-str">6. Composite Special Teams Rating (STR)</a></li>
+  <li><a href="#score-bucket-breakdown-pp-goals60-by-team" id="toc-score-bucket-breakdown-pp-goals60-by-team" class="nav-link" data-scroll-target="#score-bucket-breakdown-pp-goals60-by-team">7. Score-bucket breakdown — PP goals/60 by team</a></li>
+  <li><a href="#visualizations" id="toc-visualizations" class="nav-link" data-scroll-target="#visualizations">8. Visualizations</a></li>
+  <li><a href="#team-deep-dive-score-bucket-breakdown" id="toc-team-deep-dive-score-bucket-breakdown" class="nav-link" data-scroll-target="#team-deep-dive-score-bucket-breakdown">9. Team deep-dive — score-bucket breakdown</a></li>
+  <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export">10. Export</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">NHL Contextual Special Teams Rating</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><strong>A replacement framework for raw PP% / PK%</strong></p>
+<section id="what-this-builds" class="level3">
+<h3 class="anchored" data-anchor-id="what-this-builds">What this builds</h3>
+<p>Instead of binary success/failure per opportunity, we compute: - <strong>Goals For/Against per 60 minutes of PP/PK time</strong> — eliminates the short-opportunity distortion - <strong>Shots &amp; scoring chances per 60</strong> — process quality, not just outcomes - <strong>Score-state buckets</strong> — Chasing (down 2+), Trailing (down 1), Neutral (tied), Leading (up 1), Protecting (up 2+) - A composite <strong>STR (Special Teams Rating)</strong> per team per season</p>
+</section>
+<section id="data-source" class="level3">
+<h3 class="anchored" data-anchor-id="data-source">Data source</h3>
+<p>NHL public API: <code>https://api-web.nhle.com/v1/</code><br>
+Play-by-play endpoint: <code>/v1/gamecenter/{game_id}/play-by-play</code></p>
+</section>
+<section id="what-we-extract-from-pbp" class="level3">
+<h3 class="anchored" data-anchor-id="what-we-extract-from-pbp">What we extract from PBP</h3>
+<ul>
+<li><code>penalty</code> events → who, when, duration, score at time of penalty</li>
+<li><code>shot-on-goal</code>, <code>missed-shot</code>, <code>blocked-shot</code>, <code>goal</code> events → tagged by game strength situation</li>
+<li>Score state reconstructed from running goal tally at each event timestamp</li>
+</ul>
+<div id="cell-2" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Dependencies ──────────────────────────────────────────────────────────────</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm.notebook <span class="im">import</span> tqdm</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.ticker <span class="im">as</span> mticker</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'display.max_columns'</span>, <span class="va">None</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'display.float_format'</span>, <span class="st">'</span><span class="sc">{:.3f}</span><span class="st">'</span>.<span class="bu">format</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>BASE_URL <span class="op">=</span> <span class="st">'https://api-web.nhle.com/v1'</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Libraries loaded.'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="configuration" class="level2">
+<h2 class="anchored" data-anchor-id="configuration">1. Configuration</h2>
+<div id="cell-4" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Configure your run ────────────────────────────────────────────────────────</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Season format: YYYYYYYY  e.g. 20242025</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>SEASON        <span class="op">=</span> <span class="st">'20242025'</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>GAME_TYPE     <span class="op">=</span> <span class="dv">2</span>          <span class="co"># 2 = regular season, 3 = playoffs</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># To keep the initial run fast, cap the number of games fetched.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Set to None to pull the full season (warning: ~1300 games, takes ~30 min).</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>MAX_GAMES     <span class="op">=</span> <span class="dv">100</span>        <span class="co"># start small, increase when comfortable</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>SLEEP_BETWEEN_REQUESTS <span class="op">=</span> <span class="fl">0.25</span>   <span class="co"># seconds — be polite to the NHL API</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Score-state bucket definitions  (from the PP team's perspective)</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># goal_diff = pp_team_goals - pk_team_goals  at the time the penalty is called</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score_state_bucket(goal_diff: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>   goal_diff <span class="op">&lt;=</span>  <span class="op">-</span><span class="dv">2</span>: <span class="cf">return</span> <span class="st">'Chasing'</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> goal_diff <span class="op">==</span>  <span class="op">-</span><span class="dv">1</span>: <span class="cf">return</span> <span class="st">'Trailing'</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> goal_diff <span class="op">==</span>   <span class="dv">0</span>: <span class="cf">return</span> <span class="st">'Neutral'</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> goal_diff <span class="op">==</span>   <span class="dv">1</span>: <span class="cf">return</span> <span class="st">'Leading'</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:                  <span class="cf">return</span> <span class="st">'Protecting'</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>BUCKET_ORDER <span class="op">=</span> [<span class="st">'Chasing'</span>, <span class="st">'Trailing'</span>, <span class="st">'Neutral'</span>, <span class="st">'Leading'</span>, <span class="st">'Protecting'</span>]</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Config: season=</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">, game_type=</span><span class="sc">{</span>GAME_TYPE<span class="sc">}</span><span class="ss">, max_games=</span><span class="sc">{</span>MAX_GAMES<span class="sc">}</span><span class="ss">'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="fetch-game-ids-for-the-season" class="level2">
+<h2 class="anchored" data-anchor-id="fetch-game-ids-for-the-season">2. Fetch game IDs for the season</h2>
+<div id="cell-6" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_game_ids(season: <span class="bu">str</span>, game_type: <span class="bu">int</span>, max_games<span class="op">=</span><span class="va">None</span>) <span class="op">-&gt;</span> <span class="bu">list</span>:</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Pull all completed regular-season game IDs via the schedule endpoint."""</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The schedule/season endpoint returns every game in the season</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    url <span class="op">=</span> <span class="ss">f'</span><span class="sc">{</span>BASE_URL<span class="sc">}</span><span class="ss">/schedule/season/</span><span class="sc">{</span>season<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>game_type<span class="sc">}</span><span class="ss">'</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    resp <span class="op">=</span> requests.get(url)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> resp.status_code <span class="op">!=</span> <span class="dv">200</span>:</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Fallback: build IDs manually (season has ~1312 regular-season games)</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f'Schedule endpoint returned </span><span class="sc">{</span>resp<span class="sc">.</span>status_code<span class="sc">}</span><span class="ss">, falling back to date-range walk.'</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> _walk_schedule_by_date(season, game_type, max_games)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> resp.json()</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    game_ids <span class="op">=</span> []</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Response structure: {gameWeek: [{date, games: [{id, gameState, ...}]}]}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> week <span class="kw">in</span> data.get(<span class="st">'gameWeek'</span>, []):</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> game <span class="kw">in</span> week.get(<span class="st">'games'</span>, []):</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> game.get(<span class="st">'gameState'</span>) <span class="kw">in</span> (<span class="st">'OFF'</span>, <span class="st">'FINAL'</span>):   <span class="co"># completed games only</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                game_ids.append(game[<span class="st">'id'</span>])</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> max_games:</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        game_ids <span class="op">=</span> game_ids[:max_games]</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Found </span><span class="sc">{</span><span class="bu">len</span>(game_ids)<span class="sc">}</span><span class="ss"> completed games for season </span><span class="sc">{</span>season<span class="sc">}</span><span class="ss">.'</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> game_ids</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _walk_schedule_by_date(season: <span class="bu">str</span>, game_type: <span class="bu">int</span>, max_games<span class="op">=</span><span class="va">None</span>) <span class="op">-&gt;</span> <span class="bu">list</span>:</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Fallback: walk week-by-week through the season to collect game IDs."""</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> datetime <span class="im">import</span> date, timedelta</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    year_start <span class="op">=</span> <span class="bu">int</span>(season[:<span class="dv">4</span>])</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    start_date <span class="op">=</span> date(year_start, <span class="dv">10</span>, <span class="dv">1</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    end_date   <span class="op">=</span> date(year_start <span class="op">+</span> <span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">30</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    game_ids <span class="op">=</span> []</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    current  <span class="op">=</span> start_date</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> current <span class="op">&lt;=</span> end_date:</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>        url  <span class="op">=</span> <span class="ss">f'</span><span class="sc">{</span>BASE_URL<span class="sc">}</span><span class="ss">/schedule/</span><span class="sc">{</span>current<span class="sc">.</span>isoformat()<span class="sc">}</span><span class="ss">'</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>        resp <span class="op">=</span> requests.get(url)</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> resp.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>            data <span class="op">=</span> resp.json()</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> week <span class="kw">in</span> data.get(<span class="st">'gameWeek'</span>, []):</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> game <span class="kw">in</span> week.get(<span class="st">'games'</span>, []):</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> (game.get(<span class="st">'gameType'</span>) <span class="op">==</span> game_type <span class="kw">and</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>                            game.get(<span class="st">'gameState'</span>) <span class="kw">in</span> (<span class="st">'OFF'</span>, <span class="st">'FINAL'</span>)):</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>                        game_ids.append(game[<span class="st">'id'</span>])</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>        current <span class="op">+=</span> timedelta(weeks<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>        time.sleep(SLEEP_BETWEEN_REQUESTS)</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> max_games <span class="kw">and</span> <span class="bu">len</span>(game_ids) <span class="op">&gt;=</span> max_games:</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>    game_ids <span class="op">=</span> <span class="bu">list</span>(<span class="bu">dict</span>.fromkeys(game_ids))   <span class="co"># dedupe, preserve order</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> max_games:</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>        game_ids <span class="op">=</span> game_ids[:max_games]</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Walked schedule: found </span><span class="sc">{</span><span class="bu">len</span>(game_ids)<span class="sc">}</span><span class="ss"> completed games.'</span>)</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> game_ids</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>game_ids <span class="op">=</span> get_game_ids(SEASON, GAME_TYPE, MAX_GAMES)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="parse-play-by-play-into-special-teams-events" class="level2">
+<h2 class="anchored" data-anchor-id="parse-play-by-play-into-special-teams-events">3. Parse play-by-play into special teams events</h2>
+<div id="cell-8" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Helpers ───────────────────────────────────────────────────────────────────</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> period_seconds(period: <span class="bu">int</span>, time_in_period: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">int</span>:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Convert period + MM:SS string to total seconds from puck drop."""</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    m, s <span class="op">=</span> <span class="bu">map</span>(<span class="bu">int</span>, time_in_period.split(<span class="st">':'</span>))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (period <span class="op">-</span> <span class="dv">1</span>) <span class="op">*</span> <span class="dv">1200</span> <span class="op">+</span> m <span class="op">*</span> <span class="dv">60</span> <span class="op">+</span> s   <span class="co"># 1200 s per regulation period</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse_game(game_id: <span class="bu">int</span>) <span class="op">-&gt;</span> pd.DataFrame <span class="op">|</span> <span class="va">None</span>:</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">    Fetch one game's PBP and return a DataFrame of special-teams time slices.</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">    Each row = one second of PP/PK time, tagged with:</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">        game_id, pp_team, pk_team, score_bucket,</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">        goals_for, goals_against, shots_for, shots_against,</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">        missed_shots_for, blocked_shots_for</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    url  <span class="op">=</span> <span class="ss">f'</span><span class="sc">{</span>BASE_URL<span class="sc">}</span><span class="ss">/gamecenter/</span><span class="sc">{</span>game_id<span class="sc">}</span><span class="ss">/play-by-play'</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    resp <span class="op">=</span> requests.get(url)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> resp.status_code <span class="op">!=</span> <span class="dv">200</span>:</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> resp.json()</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    home_team <span class="op">=</span> data[<span class="st">'homeTeam'</span>][<span class="st">'abbrev'</span>]</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    away_team <span class="op">=</span> data[<span class="st">'awayTeam'</span>][<span class="st">'abbrev'</span>]</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    plays <span class="op">=</span> data.get(<span class="st">'plays'</span>, [])</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ── Pass 1: build a running score dict and collect events ─────────────────</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    score   <span class="op">=</span> {home_team: <span class="dv">0</span>, away_team: <span class="dv">0</span>}     <span class="co"># live score tracker</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    events  <span class="op">=</span> []                                <span class="co"># all events with timestamps</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> play <span class="kw">in</span> plays:</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>        etype <span class="op">=</span> play.get(<span class="st">'typeDescKey'</span>, <span class="st">''</span>)</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>        period <span class="op">=</span> play.get(<span class="st">'periodDescriptor'</span>, {}).get(<span class="st">'number'</span>, <span class="dv">0</span>)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>        time_str <span class="op">=</span> play.get(<span class="st">'timeInPeriod'</span>, <span class="st">'0:00'</span>)</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        abs_sec <span class="op">=</span> period_seconds(period, time_str)</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>        details   <span class="op">=</span> play.get(<span class="st">'details'</span>, {}) <span class="kw">or</span> {}</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>        situation <span class="op">=</span> play.get(<span class="st">'situationCode'</span>, <span class="st">''</span>)   <span class="co"># e.g. '1551' = home 5v4</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Track goals to maintain live score</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> etype <span class="op">==</span> <span class="st">'goal'</span>:</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>            scoring_team <span class="op">=</span> details.get(<span class="st">'eventOwnerTeamId'</span>)</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Map team id → abbrev</span></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> scoring_team <span class="op">==</span> data[<span class="st">'homeTeam'</span>][<span class="st">'id'</span>]:</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>                score[home_team] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> scoring_team <span class="op">==</span> data[<span class="st">'awayTeam'</span>][<span class="st">'id'</span>]:</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>                score[away_team] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>        events.append({</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>            <span class="st">'abs_sec'</span>  : abs_sec,</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>            <span class="st">'period'</span>   : period,</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>            <span class="st">'etype'</span>    : etype,</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>            <span class="st">'situation'</span>: situation,</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>            <span class="st">'details'</span>  : details,</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>            <span class="st">'score_home'</span>: score[home_team],</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>            <span class="st">'score_away'</span>: score[away_team],</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>            <span class="st">'team_id'</span>  : details.get(<span class="st">'eventOwnerTeamId'</span>),</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ── Pass 2: identify penalty windows ─────────────────────────────────────</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>    <span class="co"># We look for penalty events and record [start_sec, end_sec, pp_team, pk_team]</span></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Penalties can overlap (5v3 etc.) but we handle each separately.</span></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    penalty_windows <span class="op">=</span> []</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> play <span class="kw">in</span> plays:</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> play.get(<span class="st">'typeDescKey'</span>) <span class="op">!=</span> <span class="st">'penalty'</span>:</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>        period   <span class="op">=</span> play.get(<span class="st">'periodDescriptor'</span>, {}).get(<span class="st">'number'</span>, <span class="dv">0</span>)</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>        time_str <span class="op">=</span> play.get(<span class="st">'timeInPeriod'</span>, <span class="st">'0:00'</span>)</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>        start    <span class="op">=</span> period_seconds(period, time_str)</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>        details  <span class="op">=</span> play.get(<span class="st">'details'</span>, {}) <span class="kw">or</span> {}</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>        duration_min <span class="op">=</span> details.get(<span class="st">'duration'</span>, <span class="dv">2</span>)         <span class="co"># minutes</span></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>        penalized_id <span class="op">=</span> details.get(<span class="st">'committedByPlayerId'</span>)  <span class="co"># player</span></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>        pen_team_id  <span class="op">=</span> details.get(<span class="st">'eventOwnerTeamId'</span>)</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pen_team_id <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Identify pk_team abbrev and pp_team abbrev</span></span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pen_team_id <span class="op">==</span> data[<span class="st">'homeTeam'</span>][<span class="st">'id'</span>]:</span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>            pk_team <span class="op">=</span> home_team</span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>            pp_team <span class="op">=</span> away_team</span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>            pk_team <span class="op">=</span> away_team</span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>            pp_team <span class="op">=</span> home_team</span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> start <span class="op">+</span> duration_min <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Score at time of penalty</span></span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Find the most recent score state in events up to this second</span></span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>        score_home_at_pen <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>        score_away_at_pen <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> ev <span class="kw">in</span> events:</span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> ev[<span class="st">'abs_sec'</span>] <span class="op">&lt;=</span> start:</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>                score_home_at_pen <span class="op">=</span> ev[<span class="st">'score_home'</span>]</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>                score_away_at_pen <span class="op">=</span> ev[<span class="st">'score_away'</span>]</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pp_team <span class="op">==</span> home_team:</span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>            goal_diff <span class="op">=</span> score_home_at_pen <span class="op">-</span> score_away_at_pen</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>            goal_diff <span class="op">=</span> score_away_at_pen <span class="op">-</span> score_home_at_pen</span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>        penalty_windows.append({</span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>            <span class="st">'game_id'</span>   : game_id,</span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pp_team'</span>   : pp_team,</span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pk_team'</span>   : pk_team,</span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a>            <span class="st">'start_sec'</span> : start,</span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>            <span class="st">'end_sec'</span>   : end,</span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>            <span class="st">'goal_diff'</span> : goal_diff,</span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>            <span class="st">'bucket'</span>    : score_state_bucket(goal_diff),</span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> penalty_windows:</span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>    pw_df <span class="op">=</span> pd.DataFrame(penalty_windows)</span>
+<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ── Pass 3: tag shot/goal events to an open penalty window ───────────────</span></span>
+<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>    shot_types <span class="op">=</span> {<span class="st">'shot-on-goal'</span>, <span class="st">'goal'</span>, <span class="st">'missed-shot'</span>, <span class="st">'blocked-shot'</span>}</span>
+<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> []</span>
+<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _, pen <span class="kw">in</span> pw_df.iterrows():</span>
+<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a>        pp_team  <span class="op">=</span> pen[<span class="st">'pp_team'</span>]</span>
+<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>        pk_team  <span class="op">=</span> pen[<span class="st">'pk_team'</span>]</span>
+<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a>        start    <span class="op">=</span> pen[<span class="st">'start_sec'</span>]</span>
+<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>        end      <span class="op">=</span> pen[<span class="st">'end_sec'</span>]</span>
+<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a>        bucket   <span class="op">=</span> pen[<span class="st">'bucket'</span>]</span>
+<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Find the actual end: did a goal or counter-penalty shorten this PP?</span></span>
+<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a>        actual_end <span class="op">=</span> end</span>
+<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> ev <span class="kw">in</span> events:</span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> ev[<span class="st">'abs_sec'</span>] <span class="op">&lt;</span> start:</span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> ev[<span class="st">'abs_sec'</span>] <span class="op">&gt;</span> end:</span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a>            <span class="co"># PP-ending goal: a goal scored by pp_team ends the minor penalty</span></span>
+<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> (ev[<span class="st">'etype'</span>] <span class="op">==</span> <span class="st">'goal'</span> <span class="kw">and</span></span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a>                    ev[<span class="st">'team_id'</span>] <span class="op">==</span> (data[<span class="st">'homeTeam'</span>][<span class="st">'id'</span>] <span class="cf">if</span> pp_team <span class="op">==</span> home_team</span>
+<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a>                                       <span class="cf">else</span> data[<span class="st">'awayTeam'</span>][<span class="st">'id'</span>])):</span>
+<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>                actual_end <span class="op">=</span> ev[<span class="st">'abs_sec'</span>]</span>
+<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a>        actual_duration <span class="op">=</span> <span class="bu">max</span>(actual_end <span class="op">-</span> start, <span class="dv">1</span>)   <span class="co"># at least 1 second</span></span>
+<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a>        pp_goals  <span class="op">=</span> pp_shots  <span class="op">=</span> pp_missed <span class="op">=</span> pp_blocked <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a>        pk_goals  <span class="op">=</span> pk_shots  <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a>        pp_team_id <span class="op">=</span> data[<span class="st">'homeTeam'</span>][<span class="st">'id'</span>] <span class="cf">if</span> pp_team <span class="op">==</span> home_team <span class="cf">else</span> data[<span class="st">'awayTeam'</span>][<span class="st">'id'</span>]</span>
+<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a>        pk_team_id <span class="op">=</span> data[<span class="st">'homeTeam'</span>][<span class="st">'id'</span>] <span class="cf">if</span> pk_team <span class="op">==</span> home_team <span class="cf">else</span> data[<span class="st">'awayTeam'</span>][<span class="st">'id'</span>]</span>
+<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> ev <span class="kw">in</span> events:</span>
+<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> ev[<span class="st">'abs_sec'</span>] <span class="op">&lt;</span> start <span class="kw">or</span> ev[<span class="st">'abs_sec'</span>] <span class="op">&gt;</span> actual_end:</span>
+<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> ev[<span class="st">'etype'</span>] <span class="kw">not</span> <span class="kw">in</span> shot_types:</span>
+<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a>            team <span class="op">=</span> ev[<span class="st">'team_id'</span>]</span>
+<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a>            etype <span class="op">=</span> ev[<span class="st">'etype'</span>]</span>
+<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> team <span class="op">==</span> pp_team_id:</span>
+<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span>   etype <span class="op">==</span> <span class="st">'goal'</span>:           pp_goals   <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> etype <span class="op">==</span> <span class="st">'shot-on-goal'</span>:   pp_shots   <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> etype <span class="op">==</span> <span class="st">'missed-shot'</span>:    pp_missed  <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> etype <span class="op">==</span> <span class="st">'blocked-shot'</span>:   pp_blocked <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> team <span class="op">==</span> pk_team_id:</span>
+<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span>   etype <span class="op">==</span> <span class="st">'goal'</span>:           pk_goals   <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> etype <span class="op">==</span> <span class="st">'shot-on-goal'</span>:   pk_shots   <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-172"><a href="#cb4-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-173"><a href="#cb4-173" aria-hidden="true" tabindex="-1"></a>        rows.append({</span>
+<span id="cb4-174"><a href="#cb4-174" aria-hidden="true" tabindex="-1"></a>            <span class="st">'game_id'</span>          : game_id,</span>
+<span id="cb4-175"><a href="#cb4-175" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pp_team'</span>          : pp_team,</span>
+<span id="cb4-176"><a href="#cb4-176" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pk_team'</span>          : pk_team,</span>
+<span id="cb4-177"><a href="#cb4-177" aria-hidden="true" tabindex="-1"></a>            <span class="st">'bucket'</span>           : bucket,</span>
+<span id="cb4-178"><a href="#cb4-178" aria-hidden="true" tabindex="-1"></a>            <span class="st">'goal_diff_at_pen'</span> : pen[<span class="st">'goal_diff'</span>],</span>
+<span id="cb4-179"><a href="#cb4-179" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pp_duration_sec'</span>  : actual_duration,</span>
+<span id="cb4-180"><a href="#cb4-180" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pp_goals'</span>         : pp_goals,</span>
+<span id="cb4-181"><a href="#cb4-181" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pp_shots_on_goal'</span> : pp_shots,</span>
+<span id="cb4-182"><a href="#cb4-182" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pp_missed_shots'</span>  : pp_missed,</span>
+<span id="cb4-183"><a href="#cb4-183" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pp_blocked_shots'</span> : pp_blocked,</span>
+<span id="cb4-184"><a href="#cb4-184" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pk_goals_against'</span> : pk_goals,    <span class="co"># shorthanded goals</span></span>
+<span id="cb4-185"><a href="#cb4-185" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pk_shots_against'</span> : pk_shots,</span>
+<span id="cb4-186"><a href="#cb4-186" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-187"><a href="#cb4-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-188"><a href="#cb4-188" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(rows) <span class="cf">if</span> rows <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb4-189"><a href="#cb4-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-190"><a href="#cb4-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-191"><a href="#cb4-191" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Parser defined.'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="pull-data-for-all-games" class="level2">
+<h2 class="anchored" data-anchor-id="pull-data-for-all-games">4. Pull data for all games</h2>
+<div id="cell-10" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>all_frames <span class="op">=</span> []</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>errors     <span class="op">=</span> []</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gid <span class="kw">in</span> tqdm(game_ids, desc<span class="op">=</span><span class="st">'Fetching PBP'</span>):</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> parse_game(gid)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> df <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="kw">and</span> <span class="kw">not</span> df.empty:</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>            all_frames.append(df)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        errors.append((gid, <span class="bu">str</span>(e)))</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    time.sleep(SLEEP_BETWEEN_REQUESTS)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="ch">\n</span><span class="ss">Parsed </span><span class="sc">{</span><span class="bu">len</span>(all_frames)<span class="sc">}</span><span class="ss"> games successfully. </span><span class="sc">{</span><span class="bu">len</span>(errors)<span class="sc">}</span><span class="ss"> errors.'</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> errors:</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'Error game IDs:'</span>, [e[<span class="dv">0</span>] <span class="cf">for</span> e <span class="kw">in</span> errors[:<span class="dv">5</span>]], <span class="st">'...'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="cell-11" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>raw_df <span class="op">=</span> pd.concat(all_frames, ignore_index<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Raw event table: </span><span class="sc">{</span>raw_df<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">:,}</span><span class="ss"> penalty windows across </span><span class="sc">{</span>raw_df[<span class="st">"game_id"</span>]<span class="sc">.</span>nunique()<span class="sc">}</span><span class="ss"> games.'</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>raw_df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="aggregate-to-team-level-special-teams-metrics" class="level2">
+<h2 class="anchored" data-anchor-id="aggregate-to-team-level-special-teams-metrics">5. Aggregate to team-level special teams metrics</h2>
+<div id="cell-13" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Power Play aggregation ────────────────────────────────────────────────────</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pp_agg <span class="op">=</span> (</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    raw_df</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    .groupby([<span class="st">'pp_team'</span>, <span class="st">'bucket'</span>])</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    .agg(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        opportunities   <span class="op">=</span> (<span class="st">'game_id'</span>,          <span class="st">'count'</span>),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        total_sec       <span class="op">=</span> (<span class="st">'pp_duration_sec'</span>,   <span class="st">'sum'</span>),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        goals           <span class="op">=</span> (<span class="st">'pp_goals'</span>,          <span class="st">'sum'</span>),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        shots_on_goal   <span class="op">=</span> (<span class="st">'pp_shots_on_goal'</span>,  <span class="st">'sum'</span>),</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>        missed_shots    <span class="op">=</span> (<span class="st">'pp_missed_shots'</span>,   <span class="st">'sum'</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        blocked_shots   <span class="op">=</span> (<span class="st">'pp_blocked_shots'</span>,  <span class="st">'sum'</span>),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    .rename(columns<span class="op">=</span>{<span class="st">'pp_team'</span>: <span class="st">'team'</span>})</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>pp_agg[<span class="st">'total_min'</span>]         <span class="op">=</span> pp_agg[<span class="st">'total_sec'</span>] <span class="op">/</span> <span class="dv">60</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>pp_agg[<span class="st">'goals_per_60'</span>]      <span class="op">=</span> pp_agg[<span class="st">'goals'</span>]         <span class="op">/</span> pp_agg[<span class="st">'total_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>pp_agg[<span class="st">'shots_per_60'</span>]      <span class="op">=</span> pp_agg[<span class="st">'shots_on_goal'</span>] <span class="op">/</span> pp_agg[<span class="st">'total_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>pp_agg[<span class="st">'shot_attempts_per_60'</span>] <span class="op">=</span> (pp_agg[<span class="st">'shots_on_goal'</span>] <span class="op">+</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>                                   pp_agg[<span class="st">'missed_shots'</span>] <span class="op">+</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                                   pp_agg[<span class="st">'blocked_shots'</span>]) <span class="op">/</span> pp_agg[<span class="st">'total_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>pp_agg[<span class="st">'shooting_pct'</span>]      <span class="op">=</span> np.where(</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    pp_agg[<span class="st">'shots_on_goal'</span>] <span class="op">&gt;</span> <span class="dv">0</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    pp_agg[<span class="st">'goals'</span>] <span class="op">/</span> pp_agg[<span class="st">'shots_on_goal'</span>] <span class="op">*</span> <span class="dv">100</span>,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    np.nan</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>pp_agg[<span class="st">'type'</span>] <span class="op">=</span> <span class="st">'PP'</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Penalty Kill aggregation ──────────────────────────────────────────────────</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>pk_agg <span class="op">=</span> (</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    raw_df</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    .groupby([<span class="st">'pk_team'</span>, <span class="st">'bucket'</span>])</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    .agg(</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>        opportunities   <span class="op">=</span> (<span class="st">'game_id'</span>,          <span class="st">'count'</span>),</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>        total_sec       <span class="op">=</span> (<span class="st">'pp_duration_sec'</span>,   <span class="st">'sum'</span>),</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>        goals_against   <span class="op">=</span> (<span class="st">'pp_goals'</span>,          <span class="st">'sum'</span>),   <span class="co"># goals allowed on PK</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>        sh_goals        <span class="op">=</span> (<span class="st">'pk_goals_against'</span>,  <span class="st">'sum'</span>),   <span class="co"># shorthanded goals scored</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>        shots_against   <span class="op">=</span> (<span class="st">'pk_shots_against'</span>,  <span class="st">'sum'</span>),</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>    .rename(columns<span class="op">=</span>{<span class="st">'pk_team'</span>: <span class="st">'team'</span>})</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>pk_agg[<span class="st">'total_min'</span>]         <span class="op">=</span> pk_agg[<span class="st">'total_sec'</span>] <span class="op">/</span> <span class="dv">60</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>pk_agg[<span class="st">'goals_against_per_60'</span>] <span class="op">=</span> pk_agg[<span class="st">'goals_against'</span>] <span class="op">/</span> pk_agg[<span class="st">'total_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>pk_agg[<span class="st">'sh_goals_per_60'</span>]   <span class="op">=</span> pk_agg[<span class="st">'sh_goals'</span>]         <span class="op">/</span> pk_agg[<span class="st">'total_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>pk_agg[<span class="st">'shots_against_per_60'</span>] <span class="op">=</span> pk_agg[<span class="st">'shots_against'</span>] <span class="op">/</span> pk_agg[<span class="st">'total_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>pk_agg[<span class="st">'type'</span>] <span class="op">=</span> <span class="st">'PK'</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'PP aggregation:'</span>)</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>display(pp_agg.sort_values([<span class="st">'team'</span>,<span class="st">'bucket'</span>]).head(<span class="dv">20</span>))</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">PK aggregation:'</span>)</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>display(pk_agg.sort_values([<span class="st">'team'</span>,<span class="st">'bucket'</span>]).head(<span class="dv">20</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="composite-special-teams-rating-str" class="level2">
+<h2 class="anchored" data-anchor-id="composite-special-teams-rating-str">6. Composite Special Teams Rating (STR)</h2>
+<div id="cell-15" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Overall (all-bucket) composite ───────────────────────────────────────────</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine PP goals/60 and PK goals-against/60 into a single team rating.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># We z-score each component so they're on a common scale,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># then weight: PP goals/60 (40%), PP shot attempts/60 (10%),</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#              PK goals against/60 (-40%, inverted), PK shots against/60 (-10%, inverted)</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>pp_overall <span class="op">=</span> (</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    raw_df</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    .groupby(<span class="st">'pp_team'</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    .agg(</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        pp_min         <span class="op">=</span> (<span class="st">'pp_duration_sec'</span>, <span class="kw">lambda</span> x: x.<span class="bu">sum</span>() <span class="op">/</span> <span class="dv">60</span>),</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        pp_goals       <span class="op">=</span> (<span class="st">'pp_goals'</span>,        <span class="st">'sum'</span>),</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        pp_sog         <span class="op">=</span> (<span class="st">'pp_shots_on_goal'</span>,<span class="st">'sum'</span>),</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        pp_attempts    <span class="op">=</span> (<span class="st">'pp_shots_on_goal'</span>,<span class="st">'sum'</span>),   <span class="co"># extend below</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    .rename(columns<span class="op">=</span>{<span class="st">'pp_team'</span>: <span class="st">'team'</span>})</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Add missed + blocked for total attempts</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>extra <span class="op">=</span> raw_df.groupby(<span class="st">'pp_team'</span>)[[<span class="st">'pp_missed_shots'</span>,<span class="st">'pp_blocked_shots'</span>]].<span class="bu">sum</span>().reset_index().rename(columns<span class="op">=</span>{<span class="st">'pp_team'</span>:<span class="st">'team'</span>})</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>pp_overall <span class="op">=</span> pp_overall.merge(extra, on<span class="op">=</span><span class="st">'team'</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>pp_overall[<span class="st">'pp_attempts'</span>] <span class="op">=</span> pp_overall[<span class="st">'pp_sog'</span>] <span class="op">+</span> pp_overall[<span class="st">'pp_missed_shots'</span>] <span class="op">+</span> pp_overall[<span class="st">'pp_blocked_shots'</span>]</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>pp_overall[<span class="st">'pp_goals_per_60'</span>]    <span class="op">=</span> pp_overall[<span class="st">'pp_goals'</span>]    <span class="op">/</span> pp_overall[<span class="st">'pp_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>pp_overall[<span class="st">'pp_attempts_per_60'</span>] <span class="op">=</span> pp_overall[<span class="st">'pp_attempts'</span>] <span class="op">/</span> pp_overall[<span class="st">'pp_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>pk_overall <span class="op">=</span> (</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    raw_df</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    .groupby(<span class="st">'pk_team'</span>)</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    .agg(</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>        pk_min         <span class="op">=</span> (<span class="st">'pp_duration_sec'</span>, <span class="kw">lambda</span> x: x.<span class="bu">sum</span>() <span class="op">/</span> <span class="dv">60</span>),</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        pk_ga          <span class="op">=</span> (<span class="st">'pp_goals'</span>,        <span class="st">'sum'</span>),</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>        pk_shots_ag    <span class="op">=</span> (<span class="st">'pk_shots_against'</span>,<span class="st">'sum'</span>),</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    .rename(columns<span class="op">=</span>{<span class="st">'pk_team'</span>: <span class="st">'team'</span>})</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>pk_overall[<span class="st">'pk_ga_per_60'</span>]       <span class="op">=</span> pk_overall[<span class="st">'pk_ga'</span>]       <span class="op">/</span> pk_overall[<span class="st">'pk_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>pk_overall[<span class="st">'pk_shots_ag_per_60'</span>] <span class="op">=</span> pk_overall[<span class="st">'pk_shots_ag'</span>] <span class="op">/</span> pk_overall[<span class="st">'pk_min'</span>] <span class="op">*</span> <span class="dv">60</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>str_df <span class="op">=</span> pp_overall[[<span class="st">'team'</span>,<span class="st">'pp_goals_per_60'</span>,<span class="st">'pp_attempts_per_60'</span>,<span class="st">'pp_min'</span>]].merge(</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>         pk_overall[[<span class="st">'team'</span>,<span class="st">'pk_ga_per_60'</span>,<span class="st">'pk_shots_ag_per_60'</span>,<span class="st">'pk_min'</span>]], on<span class="op">=</span><span class="st">'team'</span>)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> z_score(series):</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (series <span class="op">-</span> series.mean()) <span class="op">/</span> series.std()</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>str_df[<span class="st">'z_pp_goals'</span>]    <span class="op">=</span>  z_score(str_df[<span class="st">'pp_goals_per_60'</span>])      <span class="co"># higher = better</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>str_df[<span class="st">'z_pp_volume'</span>]   <span class="op">=</span>  z_score(str_df[<span class="st">'pp_attempts_per_60'</span>])   <span class="co"># higher = better</span></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>str_df[<span class="st">'z_pk_ga'</span>]       <span class="op">=</span> <span class="op">-</span>z_score(str_df[<span class="st">'pk_ga_per_60'</span>])         <span class="co"># lower ga = better → invert</span></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>str_df[<span class="st">'z_pk_shots'</span>]    <span class="op">=</span> <span class="op">-</span>z_score(str_df[<span class="st">'pk_shots_ag_per_60'</span>])   <span class="co"># lower = better → invert</span></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a><span class="co"># Weighted composite</span></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>str_df[<span class="st">'STR'</span>] <span class="op">=</span> (str_df[<span class="st">'z_pp_goals'</span>]  <span class="op">*</span> <span class="fl">0.40</span> <span class="op">+</span></span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>                 str_df[<span class="st">'z_pp_volume'</span>] <span class="op">*</span> <span class="fl">0.10</span> <span class="op">+</span></span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>                 str_df[<span class="st">'z_pk_ga'</span>]    <span class="op">*</span> <span class="fl">0.40</span> <span class="op">+</span></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>                 str_df[<span class="st">'z_pk_shots'</span>] <span class="op">*</span> <span class="fl">0.10</span>)</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>str_df <span class="op">=</span> str_df.sort_values(<span class="st">'STR'</span>, ascending<span class="op">=</span><span class="va">False</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>str_df.index <span class="op">+=</span> <span class="dv">1</span>   <span class="co"># 1-based rank</span></span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'=== Composite Special Teams Rating (STR) — All Score States ==='</span>)</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>display(str_df[[<span class="st">'team'</span>,<span class="st">'pp_goals_per_60'</span>,<span class="st">'pp_attempts_per_60'</span>,</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>                <span class="st">'pk_ga_per_60'</span>,<span class="st">'pk_shots_ag_per_60'</span>,<span class="st">'STR'</span>]].<span class="bu">round</span>(<span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="score-bucket-breakdown-pp-goals60-by-team" class="level2">
+<h2 class="anchored" data-anchor-id="score-bucket-breakdown-pp-goals60-by-team">7. Score-bucket breakdown — PP goals/60 by team</h2>
+<div id="cell-17" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pivot: teams as rows, score buckets as columns</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pp_pivot <span class="op">=</span> (</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    pp_agg[pp_agg[<span class="st">'total_min'</span>] <span class="op">&gt;=</span> <span class="dv">1</span>]   <span class="co"># filter out tiny samples</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    .pivot_table(index<span class="op">=</span><span class="st">'team'</span>, columns<span class="op">=</span><span class="st">'bucket'</span>, values<span class="op">=</span><span class="st">'goals_per_60'</span>, aggfunc<span class="op">=</span><span class="st">'first'</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    .reindex(columns<span class="op">=</span>BUCKET_ORDER)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    .<span class="bu">round</span>(<span class="dv">2</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>pk_pivot <span class="op">=</span> (</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    pk_agg[pk_agg[<span class="st">'total_min'</span>] <span class="op">&gt;=</span> <span class="dv">1</span>]</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    .pivot_table(index<span class="op">=</span><span class="st">'team'</span>, columns<span class="op">=</span><span class="st">'bucket'</span>, values<span class="op">=</span><span class="st">'goals_against_per_60'</span>, aggfunc<span class="op">=</span><span class="st">'first'</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    .reindex(columns<span class="op">=</span>BUCKET_ORDER)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    .<span class="bu">round</span>(<span class="dv">2</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'=== PP Goals per 60 by Score State ==='</span>)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>display(pp_pivot)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">=== PK Goals Against per 60 by Score State ==='</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>display(pk_pivot)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="visualizations" class="level2">
+<h2 class="anchored" data-anchor-id="visualizations">8. Visualizations</h2>
+<div id="cell-19" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Chart 1: Top 15 teams by STR ──────────────────────────────────────────────</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>top_n    <span class="op">=</span> <span class="bu">min</span>(<span class="dv">15</span>, <span class="bu">len</span>(str_df))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>plot_df  <span class="op">=</span> str_df.head(top_n)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'#1a78cf'</span> <span class="cf">if</span> v <span class="op">&gt;=</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'#d62728'</span> <span class="cf">for</span> v <span class="kw">in</span> plot_df[<span class="st">'STR'</span>]]</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>bars <span class="op">=</span> ax.barh(plot_df[<span class="st">'team'</span>][::<span class="op">-</span><span class="dv">1</span>], plot_df[<span class="st">'STR'</span>][::<span class="op">-</span><span class="dv">1</span>], color<span class="op">=</span>colors[::<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="fl">0.8</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Composite STR (z-score weighted)'</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f'Special Teams Rating — Top </span><span class="sc">{</span>top_n<span class="sc">}</span><span class="ss"> Teams</span><span class="ch">\n</span><span class="sc">{</span>SEASON[:<span class="dv">4</span>]<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>SEASON[<span class="dv">4</span>:]<span class="sc">}</span><span class="ss"> Season (</span><span class="sc">{</span><span class="bu">len</span>(game_ids)<span class="sc">}</span><span class="ss"> games sampled)'</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>ax.xaxis.set_major_formatter(mticker.FormatStrFormatter(<span class="st">'</span><span class="sc">%.2f</span><span class="st">'</span>))</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="cell-20" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Chart 2: PP goals/60 by score bucket — league average bar chart ───────────</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>league_pp <span class="op">=</span> (</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    raw_df</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    .groupby(<span class="st">'bucket'</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    .agg(total_min<span class="op">=</span>(<span class="st">'pp_duration_sec'</span>, <span class="kw">lambda</span> x: x.<span class="bu">sum</span>()<span class="op">/</span><span class="dv">60</span>),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>         total_goals<span class="op">=</span>(<span class="st">'pp_goals'</span>,<span class="st">'sum'</span>))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    .assign(goals_per_60<span class="op">=</span><span class="kw">lambda</span> d: d[<span class="st">'total_goals'</span>] <span class="op">/</span> d[<span class="st">'total_min'</span>] <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    .reindex(BUCKET_ORDER)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>bar_colors <span class="op">=</span> [<span class="st">'#d62728'</span>,<span class="st">'#ff7f0e'</span>,<span class="st">'#2ca02c'</span>,<span class="st">'#1a78cf'</span>,<span class="st">'#9467bd'</span>]</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>ax.bar(league_pp.index, league_pp[<span class="st">'goals_per_60'</span>], color<span class="op">=</span>bar_colors)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'PP Goals per 60 minutes'</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f'League-Average PP Goals/60 by Score State</span><span class="ch">\n</span><span class="sc">{</span>SEASON[:<span class="dv">4</span>]<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>SEASON[<span class="dv">4</span>:]<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Score State (from PP team perspective)'</span>)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (idx, row) <span class="kw">in</span> <span class="bu">enumerate</span>(league_pp.iterrows()):</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    ax.text(i, row[<span class="st">'goals_per_60'</span>] <span class="op">+</span> <span class="fl">0.05</span>, <span class="ss">f"</span><span class="sc">{</span>row[<span class="st">'goals_per_60'</span>]<span class="sc">:.2f}</span><span class="ss">"</span>, ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="cell-21" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Chart 3: PP vs PK scatter — identify well-rounded vs specialist teams ────</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">7</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>scatter <span class="op">=</span> ax.scatter(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    str_df[<span class="st">'pp_goals_per_60'</span>],</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    str_df[<span class="st">'pk_ga_per_60'</span>],</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    c<span class="op">=</span>str_df[<span class="st">'STR'</span>], cmap<span class="op">=</span><span class="st">'RdYlGn'</span>, s<span class="op">=</span><span class="dv">80</span>, edgecolors<span class="op">=</span><span class="st">'gray'</span>, linewidths<span class="op">=</span><span class="fl">0.4</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>plt.colorbar(scatter, ax<span class="op">=</span>ax, label<span class="op">=</span><span class="st">'STR'</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Quadrant lines at league means</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>ax.axvline(str_df[<span class="st">'pp_goals_per_60'</span>].mean(), color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>ax.axhline(str_df[<span class="st">'pk_ga_per_60'</span>].mean(),   color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, row <span class="kw">in</span> str_df.iterrows():</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    ax.annotate(row[<span class="st">'team'</span>], (row[<span class="st">'pp_goals_per_60'</span>], row[<span class="st">'pk_ga_per_60'</span>]),</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>                fontsize<span class="op">=</span><span class="dv">7</span>, ha<span class="op">=</span><span class="st">'left'</span>, va<span class="op">=</span><span class="st">'bottom'</span>,</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>                xytext<span class="op">=</span>(<span class="dv">3</span>, <span class="dv">3</span>), textcoords<span class="op">=</span><span class="st">'offset points'</span>)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'PP Goals per 60 min  (higher = better PP)'</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'PK Goals Against per 60 min  (lower = better PK)'</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f'PP Efficiency vs PK Efficiency — All Score States</span><span class="ch">\n</span><span class="sc">{</span>SEASON[:<span class="dv">4</span>]<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>SEASON[<span class="dv">4</span>:]<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Quadrant labels</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>xlim <span class="op">=</span> ax.get_xlim()<span class="op">;</span> ylim <span class="op">=</span> ax.get_ylim()</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>ax.text(xlim[<span class="dv">1</span>]<span class="op">*</span><span class="fl">0.97</span>, ylim[<span class="dv">0</span>]<span class="op">*</span><span class="fl">1.01</span>, <span class="st">'Elite PP</span><span class="ch">\n</span><span class="st">Struggling PK'</span>, ha<span class="op">=</span><span class="st">'right'</span>, fontsize<span class="op">=</span><span class="dv">7</span>, color<span class="op">=</span><span class="st">'gray'</span>)</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>ax.text(xlim[<span class="dv">0</span>]<span class="op">*</span><span class="fl">1.01</span>, ylim[<span class="dv">0</span>]<span class="op">*</span><span class="fl">1.01</span>, <span class="st">'Elite both'</span>,               ha<span class="op">=</span><span class="st">'left'</span>,  fontsize<span class="op">=</span><span class="dv">7</span>, color<span class="op">=</span><span class="st">'gray'</span>)</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="team-deep-dive-score-bucket-breakdown" class="level2">
+<h2 class="anchored" data-anchor-id="team-deep-dive-score-bucket-breakdown">9. Team deep-dive — score-bucket breakdown</h2>
+<div id="cell-23" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ── Change TEAM_TO_INSPECT to any team abbreviation in your dataset ───────────</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>TEAM_TO_INSPECT <span class="op">=</span> str_df.iloc[<span class="dv">0</span>][<span class="st">'team'</span>]   <span class="co"># defaults to top STR team</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="ch">\n</span><span class="ss">=== Deep Dive: </span><span class="sc">{</span>TEAM_TO_INSPECT<span class="sc">}</span><span class="ss"> ==='</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>pp_team_df <span class="op">=</span> pp_agg[pp_agg[<span class="st">'team'</span>] <span class="op">==</span> TEAM_TO_INSPECT].set_index(<span class="st">'bucket'</span>).reindex(BUCKET_ORDER)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>pk_team_df <span class="op">=</span> pk_agg[pk_agg[<span class="st">'team'</span>] <span class="op">==</span> TEAM_TO_INSPECT].set_index(<span class="st">'bucket'</span>).reindex(BUCKET_ORDER)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">5</span>))</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co"># PP</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].bar(pp_team_df.index, pp_team_df[<span class="st">'goals_per_60'</span>], color<span class="op">=</span><span class="st">'#1a78cf'</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="ss">f'</span><span class="sc">{</span>TEAM_TO_INSPECT<span class="sc">}</span><span class="ss"> — PP Goals/60 by Score State'</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Goals per 60 PP minutes'</span>)</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Score State'</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (idx, row) <span class="kw">in</span> <span class="bu">enumerate</span>(pp_team_df.iterrows()):</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> np.isnan(row[<span class="st">'goals_per_60'</span>]):</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        axes[<span class="dv">0</span>].text(i, row[<span class="st">'goals_per_60'</span>] <span class="op">+</span> <span class="fl">0.02</span>,</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>                     <span class="ss">f"</span><span class="sc">{</span>row[<span class="st">'goals_per_60'</span>]<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">(</span><span class="sc">{</span>row[<span class="st">'total_min'</span>]<span class="sc">:.0f}</span><span class="ss">m)"</span>,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>                     ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="co"># PK</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(pk_team_df.index, pk_team_df[<span class="st">'goals_against_per_60'</span>], color<span class="op">=</span><span class="st">'#d62728'</span>)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="ss">f'</span><span class="sc">{</span>TEAM_TO_INSPECT<span class="sc">}</span><span class="ss"> — PK Goals Against/60 by Score State'</span>)</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Goals Against per 60 PK minutes'</span>)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Score State'</span>)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (idx, row) <span class="kw">in</span> <span class="bu">enumerate</span>(pk_team_df.iterrows()):</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> np.isnan(row[<span class="st">'goals_against_per_60'</span>]):</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>        axes[<span class="dv">1</span>].text(i, row[<span class="st">'goals_against_per_60'</span>] <span class="op">+</span> <span class="fl">0.02</span>,</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>                     <span class="ss">f"</span><span class="sc">{</span>row[<span class="st">'goals_against_per_60'</span>]<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">(</span><span class="sc">{</span>row[<span class="st">'total_min'</span>]<span class="sc">:.0f}</span><span class="ss">m)"</span>,</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>                     ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="ss">f'</span><span class="sc">{</span>TEAM_TO_INSPECT<span class="sc">}</span><span class="ss"> Special Teams — </span><span class="sc">{</span>SEASON[:<span class="dv">4</span>]<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>SEASON[<span class="dv">4</span>:]<span class="sc">}</span><span class="ss">'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="ch">\n</span><span class="ss">PP summary:'</span>)</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>display(pp_team_df[[<span class="st">'opportunities'</span>,<span class="st">'total_min'</span>,<span class="st">'goals'</span>,<span class="st">'shots_on_goal'</span>,</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'goals_per_60'</span>,<span class="st">'shots_per_60'</span>,<span class="st">'shooting_pct'</span>]].<span class="bu">round</span>(<span class="dv">2</span>))</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="ch">\n</span><span class="ss">PK summary:'</span>)</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>display(pk_team_df[[<span class="st">'opportunities'</span>,<span class="st">'total_min'</span>,<span class="st">'goals_against'</span>,</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'sh_goals'</span>,<span class="st">'goals_against_per_60'</span>,<span class="st">'sh_goals_per_60'</span>]].<span class="bu">round</span>(<span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="export" class="level2">
+<h2 class="anchored" data-anchor-id="export">10. Export</h2>
+<div id="cell-25" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>str_df.to_csv(<span class="ss">f'nhl_str_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv'</span>, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>pp_agg.to_csv(<span class="ss">f'nhl_pp_by_bucket_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv'</span>, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>pk_agg.to_csv(<span class="ss">f'nhl_pk_by_bucket_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv'</span>, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>raw_df.to_csv(<span class="ss">f'nhl_raw_penalty_windows_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv'</span>, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Exported:'</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'  nhl_str_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv              — composite ratings'</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'  nhl_pp_by_bucket_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv     — PP metrics by score bucket'</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'  nhl_pk_by_bucket_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv     — PK metrics by score bucket'</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'  nhl_raw_penalty_windows_</span><span class="sc">{</span>SEASON<span class="sc">}</span><span class="ss">.csv  — raw penalty window events'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
