@@ -672,12 +672,12 @@ xG = P(\text{goal} \mid \text{shot location, shot type, game situation,} \ldots)
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> xg_model(distance_ft, angle_deg, is_rebound<span class="op">=</span><span class="va">False</span>, shot_type<span class="op">=</span><span class="st">'wrist'</span>):</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    b0      <span class="op">=</span> <span class="fl">2.5</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    b0      <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>          <span class="co"># corrected intercept</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    b_dist  <span class="op">=</span> <span class="op">-</span><span class="fl">0.055</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    b_angle <span class="op">=</span> <span class="op">-</span><span class="fl">0.018</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    b_reb   <span class="op">=</span> <span class="fl">1.2</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    b_reb   <span class="op">=</span> <span class="fl">0.8</span>           <span class="co"># reduced rebound bonus</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    b_type  <span class="op">=</span> {<span class="st">'wrist'</span>: <span class="fl">0.0</span>, <span class="st">'snap'</span>: <span class="fl">0.15</span>, <span class="st">'backhand'</span>: <span class="op">-</span><span class="fl">0.3</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>               <span class="st">'slap'</span>: <span class="op">-</span><span class="fl">0.1</span>, <span class="st">'tip'</span>: <span class="fl">0.7</span>, <span class="st">'deflection'</span>: <span class="fl">0.9</span>}.get(shot_type, <span class="dv">0</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>               <span class="st">'slap'</span>: <span class="op">-</span><span class="fl">0.25</span>, <span class="st">'tip'</span>: <span class="fl">0.5</span>, <span class="st">'deflection'</span>: <span class="fl">0.7</span>}.get(shot_type, <span class="dv">0</span>)</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    logit <span class="op">=</span> b0 <span class="op">+</span> b_dist<span class="op">*</span>distance_ft <span class="op">+</span> b_angle<span class="op">*</span>angle_deg <span class="op">+</span> b_reb<span class="op">*</span>is_rebound <span class="op">+</span> b_type</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>logit))</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
@@ -731,18 +731,19 @@ xG = P(\text{goal} \mid \text{shot location, shot type, game situation,} \ldots)
 <span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'Expected Goal probability (%)'</span>)</span>
 <span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="st">'xG by Shot Scenario</span><span class="ch">\n</span><span class="st">Why "1 Corsi" is not "1 Corsi"'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
 <span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>ax2.grid(axis<span class="op">=</span><span class="st">'x'</span>)</span>
-<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>ax2.set_xlim(<span class="dv">0</span>, <span class="dv">45</span>)</span>
-<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Generation 2: Expected Goals (xG) Model'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/04_xg_heatmap_and_shot_types.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
-<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>ax2.set_xlim(<span class="dv">0</span>, <span class="dv">55</span>)   <span class="co"># wider x-axis to fit labels</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(right<span class="op">=</span><span class="fl">0.88</span>)  <span class="co"># pull right edge in so labels aren't clipped</span></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Generation 2: Expected Goals (xG) Model'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/04_xg_heatmap_and_shot_types.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-xg-model" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-xg-model-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="index_files/figure-html/fig-xg-model-output-1.png" width="1133" height="587" class="figure-img">
+<img src="index_files/figure-html/fig-xg-model-output-1.png" width="1267" height="587" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-xg-model-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: Left: xG probability by shot location. The slot — roughly the area from the crease to the top of the circles — is where games are won and lost. Right: xG by shot scenario, illustrating the enormous range from a blue-line slap shot (2–3%) to a crease deflection (30%+).
@@ -2156,12 +2157,12 @@ Figure&nbsp;8: The NHL analytics timeline from 2007 to 2025, organized by metric
 <span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Left: xG probability by shot location. The slot — roughly the area from the crease to the top of the circles — is where games are won and lost. Right: xG by shot scenario, illustrating the enormous range from a blue-line slap shot (2–3%) to a crease deflection (30%+)."</span></span>
 <span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> xg_model(distance_ft, angle_deg, is_rebound<span class="op">=</span><span class="va">False</span>, shot_type<span class="op">=</span><span class="st">'wrist'</span>):</span>
-<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a>    b0      <span class="op">=</span> <span class="fl">2.5</span></span>
+<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a>    b0      <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>          <span class="co"># corrected intercept</span></span>
 <span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a>    b_dist  <span class="op">=</span> <span class="op">-</span><span class="fl">0.055</span></span>
 <span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a>    b_angle <span class="op">=</span> <span class="op">-</span><span class="fl">0.018</span></span>
-<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>    b_reb   <span class="op">=</span> <span class="fl">1.2</span></span>
+<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>    b_reb   <span class="op">=</span> <span class="fl">0.8</span>           <span class="co"># reduced rebound bonus</span></span>
 <span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a>    b_type  <span class="op">=</span> {<span class="st">'wrist'</span>: <span class="fl">0.0</span>, <span class="st">'snap'</span>: <span class="fl">0.15</span>, <span class="st">'backhand'</span>: <span class="op">-</span><span class="fl">0.3</span>,</span>
-<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>               <span class="st">'slap'</span>: <span class="op">-</span><span class="fl">0.1</span>, <span class="st">'tip'</span>: <span class="fl">0.7</span>, <span class="st">'deflection'</span>: <span class="fl">0.9</span>}.get(shot_type, <span class="dv">0</span>)</span>
+<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>               <span class="st">'slap'</span>: <span class="op">-</span><span class="fl">0.25</span>, <span class="st">'tip'</span>: <span class="fl">0.5</span>, <span class="st">'deflection'</span>: <span class="fl">0.7</span>}.get(shot_type, <span class="dv">0</span>)</span>
 <span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a>    logit <span class="op">=</span> b0 <span class="op">+</span> b_dist<span class="op">*</span>distance_ft <span class="op">+</span> b_angle<span class="op">*</span>angle_deg <span class="op">+</span> b_reb<span class="op">*</span>is_rebound <span class="op">+</span> b_type</span>
 <span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>logit))</span>
 <span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a></span>
@@ -2215,397 +2216,398 @@ Figure&nbsp;8: The NHL analytics timeline from 2007 to 2025, organized by metric
 <span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'Expected Goal probability (%)'</span>)</span>
 <span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="st">'xG by Shot Scenario</span><span class="ch">\n</span><span class="st">Why "1 Corsi" is not "1 Corsi"'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
 <span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a>ax2.grid(axis<span class="op">=</span><span class="st">'x'</span>)</span>
-<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>ax2.set_xlim(<span class="dv">0</span>, <span class="dv">45</span>)</span>
-<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Generation 2: Expected Goals (xG) Model'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/04_xg_heatmap_and_shot_types.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
-<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a>The heatmap makes the geography of scoring immediately intuitive. The slot — the rectangular danger area from the crease out to roughly the top of the face-off circles — is where a 15–25% xG shot lives. Get to the middle, and you're dangerous. Drift wide or shoot from the perimeter, and you're feeding the goalie warm-up reps.</span>
-<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a>The bar chart on the right makes the Corsi limitation concrete: there's a **15× difference in goal probability** between a blue-line slap shot (2%) and a crease deflection (30%). Counting them equally isn't just imprecise — it's genuinely misleading about which teams are creating real danger.</span>
-<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a><span class="fu">### The PDO Insight: Separating Luck from Skill</span></span>
-<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a>A key companion metric to xG was **PDO** (named after the analyst who popularized it), defined as:</span>
-<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a>\text{PDO} = \text{Shooting \%} + \text{Save \%}</span>
-<span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a>The insight: for an average team facing average goaltending, PDO should hover around 100% (or 1.000 in decimal form). Teams with extremely high PDO — say, 103 — are likely getting unusually lucky shooting percentages or unsustainably good goaltending. xG helps isolate *which* component is real talent versus regression bait.</span>
-<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a><span class="fu">### Key xG-Era Derived Metrics</span></span>
-<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Metric <span class="pp">|</span> Formula <span class="pp">|</span> What it captures <span class="pp">|</span></span>
-<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a><span class="pp">|--------|---------|-----------------|</span></span>
-<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **xGF%** <span class="pp">|</span> $\frac{xGF}{xGF + xGA}$ <span class="pp">|</span> Shot quality share — possession *quality* <span class="pp">|</span></span>
-<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **xG/60** <span class="pp">|</span> $\frac{xG}{TOI} \times 60$ <span class="pp">|</span> Rate-normalized offense or defense <span class="pp">|</span></span>
-<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **GSAx** <span class="pp">|</span> $\text{Goals Saved} - xGA$ <span class="pp">|</span> Goalie performance above expectation <span class="pp">|</span></span>
-<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **PDO** <span class="pp">|</span> $\text{Sh\%} + \text{Sv\%}$ <span class="pp">|</span> Composite luck/sustainability indicator <span class="pp">|</span></span>
-<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a>xGF% became the dominant team and player evaluation metric by around 2016–17, replacing CF% as the go-to for identifying sustainable performance. But a new problem was emerging: even xGF% couldn't tell you how much of a team's quality was attributable to any *individual* player.</span>
-<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generation 3 — Player Value: WAR, RAPM &amp; GSVA (2018–2022)</span></span>
-<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem Being Solved</span></span>
-<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *"Corsi tells us about possession. xG tells us about shot quality. Neither tells us how many wins a single player is actually worth."*</span></span>
-<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a>By the late 2010s, hockey analytics borrowed the most important conceptual framework in baseball statistics: **Wins Above Replacement (WAR)**. The question it answers is deceptively simple — if you replaced this player with a freely available replacement-level player (a fringe AHL call-up), how many fewer wins would your team have?</span>
-<span id="cb9-560"><a href="#cb9-560" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a>Collapsing all contributions into a single number allows direct comparison across positions, roles, and ice-time situations. A 4-WAR forward and a 4-WAR defenseman are equally valuable, even if they contribute in completely different ways.</span>
-<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-563"><a href="#cb9-563" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Engine: RAPM</span></span>
-<span id="cb9-564"><a href="#cb9-564" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-565"><a href="#cb9-565" aria-hidden="true" tabindex="-1"></a>The technical core of hockey WAR is **Regularized Adjusted Plus/Minus (RAPM)** — a ridge-regression model that estimates each player's individual contribution to on-ice xG share while simultaneously controlling for all of their teammates and opponents.</span>
-<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a>The model estimates player effects $\beta_p$ by solving:</span>
-<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-570"><a href="#cb9-570" aria-hidden="true" tabindex="-1"></a>xGF\%_{\text{shift}} = \alpha + \sum_{p \in \text{skaters on ice}} \beta_p + \varepsilon</span>
-<span id="cb9-571"><a href="#cb9-571" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a>With an L2 (ridge) regularization penalty that shrinks uncertain estimates toward zero:</span>
-<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-575"><a href="#cb9-575" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-576"><a href="#cb9-576" aria-hidden="true" tabindex="-1"></a>\hat{\boldsymbol{\beta}} = \arg\min_{\boldsymbol{\beta}} \left<span class="co">[</span><span class="ot"> \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \lambda \|\boldsymbol{\beta}\|^2 \right</span><span class="co">]</span></span>
-<span id="cb9-577"><a href="#cb9-577" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a>The $\lambda$ penalty is critical: it prevents overfitting for players with small sample sizes (fourth-liners, healthy scratches playing spot minutes). Without it, a player who happened to be on the ice for a fluky 3-goal shift in 12 total minutes would look like the best player in the league.</span>
-<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-583"><a href="#cb9-583" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-584"><a href="#cb9-584" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-rapm</span></span>
-<span id="cb9-585"><a href="#cb9-585" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "RAPM ridge regularization in action. Left: larger λ values shrink low-TOI players' estimates more aggressively toward zero. Right: with the right λ, RAPM recovers the underlying true talent fairly well — high-TOI players (yellow) cluster tighter around the 45° line."</span></span>
-<span id="cb9-586"><a href="#cb9-586" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-587"><a href="#cb9-587" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
-<span id="cb9-588"><a href="#cb9-588" aria-hidden="true" tabindex="-1"></a>n_players <span class="op">=</span> <span class="dv">600</span></span>
-<span id="cb9-589"><a href="#cb9-589" aria-hidden="true" tabindex="-1"></a>true_rapm    <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="fl">1.5</span>, n_players)</span>
-<span id="cb9-590"><a href="#cb9-590" aria-hidden="true" tabindex="-1"></a>toi_minutes  <span class="op">=</span> np.random.lognormal(np.log(<span class="dv">600</span>), <span class="fl">0.5</span>, n_players)</span>
-<span id="cb9-591"><a href="#cb9-591" aria-hidden="true" tabindex="-1"></a>noise_scale  <span class="op">=</span> <span class="dv">3000</span> <span class="op">/</span> toi_minutes</span>
-<span id="cb9-592"><a href="#cb9-592" aria-hidden="true" tabindex="-1"></a>observed     <span class="op">=</span> true_rapm <span class="op">+</span> np.random.normal(<span class="dv">0</span>, noise_scale)</span>
-<span id="cb9-593"><a href="#cb9-593" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-594"><a href="#cb9-594" aria-hidden="true" tabindex="-1"></a>ridge_estimates <span class="op">=</span> {}</span>
-<span id="cb9-595"><a href="#cb9-595" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lam <span class="kw">in</span> [<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="fl">2.0</span>, <span class="fl">8.0</span>]:</span>
-<span id="cb9-596"><a href="#cb9-596" aria-hidden="true" tabindex="-1"></a>    shrinkage <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> lam <span class="op">/</span> (toi_minutes <span class="op">/</span> <span class="dv">60</span>))</span>
-<span id="cb9-597"><a href="#cb9-597" aria-hidden="true" tabindex="-1"></a>    ridge_estimates[lam] <span class="op">=</span> observed <span class="op">*</span> shrinkage</span>
-<span id="cb9-598"><a href="#cb9-598" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-599"><a href="#cb9-599" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">5</span>))</span>
-<span id="cb9-600"><a href="#cb9-600" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-601"><a href="#cb9-601" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>]</span>
-<span id="cb9-602"><a href="#cb9-602" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lam, col <span class="kw">in</span> <span class="bu">zip</span>([<span class="fl">0.5</span>, <span class="fl">2.0</span>, <span class="fl">8.0</span>], [GREEN, GOLD, NHL_RED]):</span>
-<span id="cb9-603"><a href="#cb9-603" aria-hidden="true" tabindex="-1"></a>    est   <span class="op">=</span> ridge_estimates[lam]</span>
-<span id="cb9-604"><a href="#cb9-604" aria-hidden="true" tabindex="-1"></a>    r_val <span class="op">=</span> np.corrcoef(true_rapm, est)[<span class="dv">0</span>,<span class="dv">1</span>]</span>
-<span id="cb9-605"><a href="#cb9-605" aria-hidden="true" tabindex="-1"></a>    ax.scatter(toi_minutes<span class="op">/</span><span class="dv">60</span>, np.<span class="bu">abs</span>(observed <span class="op">-</span> est), alpha<span class="op">=</span><span class="fl">0.15</span>, s<span class="op">=</span><span class="dv">8</span>, color<span class="op">=</span>col)</span>
-<span id="cb9-606"><a href="#cb9-606" aria-hidden="true" tabindex="-1"></a>    ax.plot([], [], color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f'λ=</span><span class="sc">{</span>lam<span class="sc">}</span><span class="ss">  (r=</span><span class="sc">{</span>r_val<span class="sc">:.3f}</span><span class="ss"> vs truth)'</span>)</span>
-<span id="cb9-607"><a href="#cb9-607" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'TOI (hours played)'</span>)</span>
-<span id="cb9-608"><a href="#cb9-608" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Shrinkage applied |raw − ridge|'</span>)</span>
-<span id="cb9-609"><a href="#cb9-609" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Ridge Regularization: More Shrinkage for Low-TOI Players'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb9-610"><a href="#cb9-610" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">9</span>)</span>
-<span id="cb9-611"><a href="#cb9-611" aria-hidden="true" tabindex="-1"></a>ax.grid()</span>
-<span id="cb9-612"><a href="#cb9-612" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-613"><a href="#cb9-613" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> axes[<span class="dv">1</span>]</span>
-<span id="cb9-614"><a href="#cb9-614" aria-hidden="true" tabindex="-1"></a>best_est <span class="op">=</span> ridge_estimates[<span class="fl">2.0</span>]</span>
-<span id="cb9-615"><a href="#cb9-615" aria-hidden="true" tabindex="-1"></a>sc <span class="op">=</span> ax2.scatter(true_rapm, best_est, c<span class="op">=</span>toi_minutes<span class="op">/</span><span class="dv">60</span>, cmap<span class="op">=</span><span class="st">'viridis'</span>, alpha<span class="op">=</span><span class="fl">0.4</span>, s<span class="op">=</span><span class="dv">15</span>)</span>
-<span id="cb9-616"><a href="#cb9-616" aria-hidden="true" tabindex="-1"></a>plt.colorbar(sc, ax<span class="op">=</span>ax2, label<span class="op">=</span><span class="st">'TOI (hours)'</span>)</span>
-<span id="cb9-617"><a href="#cb9-617" aria-hidden="true" tabindex="-1"></a>m, b <span class="op">=</span> np.polyfit(true_rapm, best_est, <span class="dv">1</span>)</span>
-<span id="cb9-618"><a href="#cb9-618" aria-hidden="true" tabindex="-1"></a>xfit <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">100</span>)</span>
-<span id="cb9-619"><a href="#cb9-619" aria-hidden="true" tabindex="-1"></a>ax2.plot(xfit, m<span class="op">*</span>xfit<span class="op">+</span>b, color<span class="op">=</span>ORANGE, lw<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb9-620"><a href="#cb9-620" aria-hidden="true" tabindex="-1"></a>ax2.plot(xfit, xfit, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">'#8b949e'</span>, lw<span class="op">=</span><span class="fl">1.2</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
-<span id="cb9-621"><a href="#cb9-621" aria-hidden="true" tabindex="-1"></a>r_best <span class="op">=</span> np.corrcoef(true_rapm, best_est)[<span class="dv">0</span>,<span class="dv">1</span>]</span>
-<span id="cb9-622"><a href="#cb9-622" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'True RAPM talent'</span>)</span>
-<span id="cb9-623"><a href="#cb9-623" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">'Estimated RAPM (λ=2.0)'</span>)</span>
-<span id="cb9-624"><a href="#cb9-624" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="ss">f'RAPM Recovery of True Talent (r=</span><span class="sc">{</span>r_best<span class="sc">:.3f}</span><span class="ss">)</span><span class="ch">\n</span><span class="ss">Colored by TOI — high TOI = tighter estimates'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb9-625"><a href="#cb9-625" aria-hidden="true" tabindex="-1"></a>ax2.grid()</span>
-<span id="cb9-626"><a href="#cb9-626" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-627"><a href="#cb9-627" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'The RAPM Engine: Ridge Regression Inside WAR'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb9-628"><a href="#cb9-628" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb9-629"><a href="#cb9-629" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/07_rapm_ridge_regression.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
-<span id="cb9-630"><a href="#cb9-630" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb9-631"><a href="#cb9-631" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-632"><a href="#cb9-632" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-633"><a href="#cb9-633" aria-hidden="true" tabindex="-1"></a>The left panel shows the key insight: the model *deliberately* shrinks low-TOI players' estimates more than high-TOI players. This is the correct move — a player with 200 minutes of ice time has a far noisier RAPM estimate than one with 1,400 minutes, and the model reflects that uncertainty by pulling the estimate closer to league average. The right panel shows that at a moderate λ, RAPM does a good job recovering actual underlying talent — not perfect, but meaningfully better than raw observed statistics.</span>
-<span id="cb9-634"><a href="#cb9-634" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-635"><a href="#cb9-635" aria-hidden="true" tabindex="-1"></a><span class="fu">### From RAPM to WAR</span></span>
-<span id="cb9-636"><a href="#cb9-636" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-637"><a href="#cb9-637" aria-hidden="true" tabindex="-1"></a>The **Evolving Hockey WAR model** (Arsenault &amp; Desjardins, 2019) builds on RAPM by:</span>
-<span id="cb9-638"><a href="#cb9-638" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-639"><a href="#cb9-639" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Breaking the player effect into components: even-strength offense, even-strength defense, powerplay, penalty kill, penalties drawn/taken, faceoffs</span>
-<span id="cb9-640"><a href="#cb9-640" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Scaling each component from xG units to **Goals Above Replacement (GAR)**</span>
-<span id="cb9-641"><a href="#cb9-641" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Converting goals to wins using a league-wide goals-per-win factor (~5–6 goals per win)</span>
-<span id="cb9-642"><a href="#cb9-642" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-643"><a href="#cb9-643" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-644"><a href="#cb9-644" aria-hidden="true" tabindex="-1"></a>\text{WAR} = \frac{\text{GAR}_{\text{total}} }{\text{Goals Per Win}}</span>
-<span id="cb9-645"><a href="#cb9-645" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-646"><a href="#cb9-646" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-647"><a href="#cb9-647" aria-hidden="true" tabindex="-1"></a>For goalies, the equivalent is **Goals Saved Above Expected (GSAx)**:</span>
-<span id="cb9-648"><a href="#cb9-648" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-649"><a href="#cb9-649" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-650"><a href="#cb9-650" aria-hidden="true" tabindex="-1"></a>\text{GSAx} = xGA - GA</span>
-<span id="cb9-651"><a href="#cb9-651" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb9-652"><a href="#cb9-652" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-653"><a href="#cb9-653" aria-hidden="true" tabindex="-1"></a>A goalie with GSAx = +12 saved 12 more goals than an average goalie would have against the same shot profile. At ~5–6 goals per win, that's roughly 2 wins of goalie value above average.</span>
-<span id="cb9-654"><a href="#cb9-654" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-655"><a href="#cb9-655" aria-hidden="true" tabindex="-1"></a><span class="fu">### The WAR Era's Limits</span></span>
-<span id="cb9-656"><a href="#cb9-656" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-657"><a href="#cb9-657" aria-hidden="true" tabindex="-1"></a>WAR was a genuine leap — suddenly you could ask "is this defenseman worth his $6M contract?" with actual math behind the answer. But the model remained constrained by what the data could see: **everything measured was still shot-attempt derived**. A player's defensive positioning, his off-puck movement, his ability to win board battles and create separation — none of it registered unless it eventually showed up as a shot attempt. The map was better, but the territory was still mostly invisible.</span>
-<span id="cb9-658"><a href="#cb9-658" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-659"><a href="#cb9-659" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-660"><a href="#cb9-660" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-661"><a href="#cb9-661" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generation 4 — The Tracking Era (2022–Present)</span></span>
-<span id="cb9-662"><a href="#cb9-662" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-663"><a href="#cb9-663" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem Being Solved</span></span>
-<span id="cb9-664"><a href="#cb9-664" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-665"><a href="#cb9-665" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *"Hockey is 60 minutes of off-puck movement, defensive reads, and positioning decisions. Most of it never becomes a shot attempt."*</span></span>
-<span id="cb9-666"><a href="#cb9-666" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-667"><a href="#cb9-667" aria-hidden="true" tabindex="-1"></a>The NHL's partnership with optical player tracking technology — deployed at scale starting around 2021–22 — finally opened the door to the layer of hockey that had always been analytically invisible. Every player's position, speed, and movement is now tracked multiple times per second, and the puck itself carries a chip that logs its location and velocity.</span>
-<span id="cb9-668"><a href="#cb9-668" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-669"><a href="#cb9-669" aria-hidden="true" tabindex="-1"></a><span class="fu">### Zone Entries and Exits: The Bridge Metric</span></span>
-<span id="cb9-670"><a href="#cb9-670" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-671"><a href="#cb9-671" aria-hidden="true" tabindex="-1"></a>Even before full tracking arrived, manually-tracked **zone entry and exit data** (pioneered by Corey Sznajder's *All Three Zones* project starting around 2013) revealed something fundamental about how offense is actually generated.</span>
-<span id="cb9-672"><a href="#cb9-672" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-675"><a href="#cb9-675" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-676"><a href="#cb9-676" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-zone-entries</span></span>
-<span id="cb9-677"><a href="#cb9-677" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Zone entry value by entry type. Controlled entries — carrying or passing the puck across the blue line with possession retained — generate roughly 3× the xG and shot attempts of dump-ins. This single finding reshaped how coaches think about the neutral zone."</span></span>
-<span id="cb9-678"><a href="#cb9-678" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-679"><a href="#cb9-679" aria-hidden="true" tabindex="-1"></a>entry_types       <span class="op">=</span> [<span class="st">'Dump-in'</span>, <span class="st">'Controlled</span><span class="ch">\n</span><span class="st">(carry)'</span>, <span class="st">'Controlled</span><span class="ch">\n</span><span class="st">(pass)'</span>]</span>
-<span id="cb9-680"><a href="#cb9-680" aria-hidden="true" tabindex="-1"></a>xg_per_entry      <span class="op">=</span> [<span class="fl">0.028</span>, <span class="fl">0.087</span>, <span class="fl">0.094</span>]</span>
-<span id="cb9-681"><a href="#cb9-681" aria-hidden="true" tabindex="-1"></a>shots_per_entry   <span class="op">=</span> [<span class="fl">0.85</span>, <span class="fl">2.61</span>, <span class="fl">2.78</span>]</span>
-<span id="cb9-682"><a href="#cb9-682" aria-hidden="true" tabindex="-1"></a>possession_secs   <span class="op">=</span> [<span class="fl">8.2</span>, <span class="fl">24.5</span>, <span class="fl">26.8</span>]</span>
-<span id="cb9-683"><a href="#cb9-683" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-684"><a href="#cb9-684" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">5</span>))</span>
-<span id="cb9-685"><a href="#cb9-685" aria-hidden="true" tabindex="-1"></a>bar_colors <span class="op">=</span> [ORANGE, TEAL, GREEN]</span>
-<span id="cb9-686"><a href="#cb9-686" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-687"><a href="#cb9-687" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, vals, title, ylabel <span class="kw">in</span> <span class="bu">zip</span>(</span>
-<span id="cb9-688"><a href="#cb9-688" aria-hidden="true" tabindex="-1"></a>    axes,</span>
-<span id="cb9-689"><a href="#cb9-689" aria-hidden="true" tabindex="-1"></a>    [xg_per_entry, shots_per_entry, possession_secs],</span>
-<span id="cb9-690"><a href="#cb9-690" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'xG per Zone Entry'</span>, <span class="st">'Shot Attempts per Entry'</span>, <span class="st">'Avg Possession (sec)'</span>],</span>
-<span id="cb9-691"><a href="#cb9-691" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'xG'</span>, <span class="st">'Corsi events'</span>, <span class="st">'Seconds'</span>]</span>
-<span id="cb9-692"><a href="#cb9-692" aria-hidden="true" tabindex="-1"></a>):</span>
-<span id="cb9-693"><a href="#cb9-693" aria-hidden="true" tabindex="-1"></a>    bars <span class="op">=</span> ax.bar(entry_types, vals, color<span class="op">=</span>bar_colors, alpha<span class="op">=</span><span class="fl">0.85</span>, width<span class="op">=</span><span class="fl">0.55</span>)</span>
-<span id="cb9-694"><a href="#cb9-694" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> bar, val <span class="kw">in</span> <span class="bu">zip</span>(bars, vals):</span>
-<span id="cb9-695"><a href="#cb9-695" aria-hidden="true" tabindex="-1"></a>        ax.text(bar.get_x() <span class="op">+</span> bar.get_width()<span class="op">/</span><span class="dv">2</span>, bar.get_height() <span class="op">+</span> <span class="bu">max</span>(vals)<span class="op">*</span><span class="fl">0.02</span>,</span>
-<span id="cb9-696"><a href="#cb9-696" aria-hidden="true" tabindex="-1"></a>                <span class="ss">f'</span><span class="sc">{</span>val<span class="sc">:.3f}</span><span class="ss">'</span> <span class="cf">if</span> ylabel <span class="op">==</span> <span class="st">'xG'</span> <span class="cf">else</span> <span class="ss">f'</span><span class="sc">{</span>val<span class="sc">:.2f}</span><span class="ss">'</span>,</span>
-<span id="cb9-697"><a href="#cb9-697" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="fl">9.5</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb9-698"><a href="#cb9-698" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb9-699"><a href="#cb9-699" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(ylabel)</span>
-<span id="cb9-700"><a href="#cb9-700" aria-hidden="true" tabindex="-1"></a>    ax.grid(axis<span class="op">=</span><span class="st">'y'</span>)</span>
-<span id="cb9-701"><a href="#cb9-701" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-702"><a href="#cb9-702" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Zone Entry Quality: Controlled Entries Are ~3× More Valuable</span><span class="ch">\n</span><span class="st">'</span></span>
-<span id="cb9-703"><a href="#cb9-703" aria-hidden="true" tabindex="-1"></a>             <span class="st">'(Sznajder All Three Zones + public research, 2015–2024)'</span>,</span>
-<span id="cb9-704"><a href="#cb9-704" aria-hidden="true" tabindex="-1"></a>             fontsize<span class="op">=</span><span class="dv">12</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb9-705"><a href="#cb9-705" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb9-706"><a href="#cb9-706" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/08_zone_entry_value.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
-<span id="cb9-707"><a href="#cb9-707" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb9-708"><a href="#cb9-708" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-709"><a href="#cb9-709" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-710"><a href="#cb9-710" aria-hidden="true" tabindex="-1"></a>This finding — that a controlled entry generates roughly three times the offensive output of a dump-in — had immediate tactical implications. Coaches started placing greater value on forwards who could carry or pass the puck cleanly through the neutral zone. The dump-and-chase game that had dominated hockey strategy for decades was reframed not as a style choice, but as a measurable concession of offense.</span>
-<span id="cb9-711"><a href="#cb9-711" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-712"><a href="#cb9-712" aria-hidden="true" tabindex="-1"></a><span class="fu">### Tracking-Era Metrics</span></span>
-<span id="cb9-713"><a href="#cb9-713" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-714"><a href="#cb9-714" aria-hidden="true" tabindex="-1"></a>Full player and puck tracking has since enabled a new generation of measurements that previously existed only as coaching intuitions:</span>
-<span id="cb9-715"><a href="#cb9-715" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-716"><a href="#cb9-716" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Metric <span class="pp">|</span> What it measures <span class="pp">|</span> Technology required <span class="pp">|</span></span>
-<span id="cb9-717"><a href="#cb9-717" aria-hidden="true" tabindex="-1"></a><span class="pp">|--------|-----------------|---------------------|</span></span>
-<span id="cb9-718"><a href="#cb9-718" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Puck speed at shot** <span class="pp">|</span> Velocity (mph) at release <span class="pp">|</span> Puck chip <span class="pp">|</span></span>
-<span id="cb9-719"><a href="#cb9-719" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Rush shot flag** <span class="pp">|</span> Shot within 4 sec of zone entry <span class="pp">|</span> Event + tracking <span class="pp">|</span></span>
-<span id="cb9-720"><a href="#cb9-720" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Pass before shot** <span class="pp">|</span> Cross-ice pass preceding attempt <span class="pp">|</span> Sportlogiq <span class="pp">|</span></span>
-<span id="cb9-721"><a href="#cb9-721" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Defensive zone coverage** <span class="pp">|</span> % of time in correct position <span class="pp">|</span> Player tracking <span class="pp">|</span></span>
-<span id="cb9-722"><a href="#cb9-722" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Separation on entry** <span class="pp">|</span> Skater speed vs nearest defender <span class="pp">|</span> Player tracking <span class="pp">|</span></span>
-<span id="cb9-723"><a href="#cb9-723" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Expected Turnovers (xTO)** <span class="pp">|</span> Probability of puck loss on given play <span class="pp">|</span> ML on tracking data <span class="pp">|</span></span>
-<span id="cb9-724"><a href="#cb9-724" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-725"><a href="#cb9-725" aria-hidden="true" tabindex="-1"></a><span class="fu">### What's Next: The AI Frontier</span></span>
-<span id="cb9-726"><a href="#cb9-726" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-727"><a href="#cb9-727" aria-hidden="true" tabindex="-1"></a>The most advanced work happening in NHL analytics departments right now — most of it proprietary — is pushing into territory that would have been science fiction a decade ago:</span>
-<span id="cb9-728"><a href="#cb9-728" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-729"><a href="#cb9-729" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Graph neural networks** that model all 10 skaters simultaneously as a formation, not as individuals</span>
-<span id="cb9-730"><a href="#cb9-730" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Sequence models (LSTM / Transformer)** that compute xG based on the last 10–15 seconds of play, not just the shot itself</span>
-<span id="cb9-731"><a href="#cb9-731" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Off-puck movement valuation** using optical flow to assign credit for creating passing lanes and drawing defenders</span>
-<span id="cb9-732"><a href="#cb9-732" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Integrated contract models** that predict future performance and cap value from the full metric stack</span>
-<span id="cb9-733"><a href="#cb9-733" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-734"><a href="#cb9-734" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-735"><a href="#cb9-735" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-736"><a href="#cb9-736" aria-hidden="true" tabindex="-1"></a><span class="fu">## Putting It All Together: How the Generations Agree (and Disagree)</span></span>
-<span id="cb9-737"><a href="#cb9-737" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-738"><a href="#cb9-738" aria-hidden="true" tabindex="-1"></a>Let's close with a concrete look at what happens when you apply Generation 1, 2, and 3 metrics to the same season and ask: do they rank teams the same way?</span>
-<span id="cb9-739"><a href="#cb9-739" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-742"><a href="#cb9-742" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-743"><a href="#cb9-743" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-gen-comparison</span></span>
-<span id="cb9-744"><a href="#cb9-744" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "CF% vs xGF% for the top 16 teams of 2023-24 (left), and a rank comparison across three metric generations (right). Where the columns agree, the signal is strong. Where they diverge — like teams ranked 8th in points but 18th in CF% — there's an interesting analytical story to tell."</span></span>
-<span id="cb9-745"><a href="#cb9-745" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-746"><a href="#cb9-746" aria-hidden="true" tabindex="-1"></a>df_2324 <span class="op">=</span> get_standings(<span class="st">'20232024'</span>)</span>
-<span id="cb9-747"><a href="#cb9-747" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-748"><a href="#cb9-748" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> df_2324.empty:</span>
-<span id="cb9-749"><a href="#cb9-749" aria-hidden="true" tabindex="-1"></a>    df_2324 <span class="op">=</span> df_2324.sort_values(<span class="st">'points'</span>, ascending<span class="op">=</span><span class="va">False</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb9-750"><a href="#cb9-750" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-751"><a href="#cb9-751" aria-hidden="true" tabindex="-1"></a>    nst_data <span class="op">=</span> {</span>
-<span id="cb9-752"><a href="#cb9-752" aria-hidden="true" tabindex="-1"></a>        <span class="st">'BOS'</span>: (<span class="fl">57.2</span>, <span class="fl">56.1</span>), <span class="st">'NYR'</span>: (<span class="fl">54.1</span>, <span class="fl">53.8</span>), <span class="st">'FLA'</span>: (<span class="fl">51.3</span>, <span class="fl">52.4</span>),</span>
-<span id="cb9-753"><a href="#cb9-753" aria-hidden="true" tabindex="-1"></a>        <span class="st">'VAN'</span>: (<span class="fl">52.8</span>, <span class="fl">54.2</span>), <span class="st">'COL'</span>: (<span class="fl">53.4</span>, <span class="fl">52.8</span>), <span class="st">'DAL'</span>: (<span class="fl">50.9</span>, <span class="fl">52.1</span>),</span>
-<span id="cb9-754"><a href="#cb9-754" aria-hidden="true" tabindex="-1"></a>        <span class="st">'WPG'</span>: (<span class="fl">53.1</span>, <span class="fl">51.7</span>), <span class="st">'NSH'</span>: (<span class="fl">49.8</span>, <span class="fl">50.2</span>), <span class="st">'CAR'</span>: (<span class="fl">55.6</span>, <span class="fl">56.3</span>),</span>
-<span id="cb9-755"><a href="#cb9-755" aria-hidden="true" tabindex="-1"></a>        <span class="st">'EDM'</span>: (<span class="fl">50.4</span>, <span class="fl">51.8</span>), <span class="st">'VGK'</span>: (<span class="fl">51.7</span>, <span class="fl">53.0</span>), <span class="st">'TBL'</span>: (<span class="fl">50.1</span>, <span class="fl">50.8</span>),</span>
-<span id="cb9-756"><a href="#cb9-756" aria-hidden="true" tabindex="-1"></a>        <span class="st">'TOR'</span>: (<span class="fl">51.9</span>, <span class="fl">52.6</span>), <span class="st">'PIT'</span>: (<span class="fl">47.3</span>, <span class="fl">48.1</span>), <span class="st">'BUF'</span>: (<span class="fl">46.8</span>, <span class="fl">47.5</span>),</span>
-<span id="cb9-757"><a href="#cb9-757" aria-hidden="true" tabindex="-1"></a>        <span class="st">'NJD'</span>: (<span class="fl">49.5</span>, <span class="fl">50.1</span>), <span class="st">'STL'</span>: (<span class="fl">47.1</span>, <span class="fl">48.4</span>), <span class="st">'LAK'</span>: (<span class="fl">52.3</span>, <span class="fl">53.1</span>),</span>
-<span id="cb9-758"><a href="#cb9-758" aria-hidden="true" tabindex="-1"></a>        <span class="st">'SEA'</span>: (<span class="fl">48.7</span>, <span class="fl">49.5</span>), <span class="st">'MIN'</span>: (<span class="fl">50.8</span>, <span class="fl">51.2</span>), <span class="st">'OTT'</span>: (<span class="fl">49.2</span>, <span class="fl">49.8</span>),</span>
-<span id="cb9-759"><a href="#cb9-759" aria-hidden="true" tabindex="-1"></a>        <span class="st">'DET'</span>: (<span class="fl">46.5</span>, <span class="fl">47.1</span>), <span class="st">'PHI'</span>: (<span class="fl">45.8</span>, <span class="fl">46.2</span>), <span class="st">'NYI'</span>: (<span class="fl">48.1</span>, <span class="fl">48.9</span>),</span>
-<span id="cb9-760"><a href="#cb9-760" aria-hidden="true" tabindex="-1"></a>        <span class="st">'MTL'</span>: (<span class="fl">44.3</span>, <span class="fl">45.1</span>), <span class="st">'CGY'</span>: (<span class="fl">48.4</span>, <span class="fl">49.0</span>), <span class="st">'ARI'</span>: (<span class="fl">43.2</span>, <span class="fl">44.0</span>),</span>
-<span id="cb9-761"><a href="#cb9-761" aria-hidden="true" tabindex="-1"></a>        <span class="st">'CBJ'</span>: (<span class="fl">42.8</span>, <span class="fl">43.5</span>), <span class="st">'SJS'</span>: (<span class="fl">41.5</span>, <span class="fl">42.2</span>), <span class="st">'CHI'</span>: (<span class="fl">40.1</span>, <span class="fl">41.3</span>),</span>
-<span id="cb9-762"><a href="#cb9-762" aria-hidden="true" tabindex="-1"></a>        <span class="st">'ANA'</span>: (<span class="fl">44.8</span>, <span class="fl">45.6</span>), <span class="st">'WSH'</span>: (<span class="fl">49.1</span>, <span class="fl">50.3</span>),</span>
-<span id="cb9-763"><a href="#cb9-763" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb9-764"><a href="#cb9-764" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-765"><a href="#cb9-765" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'cf_pct'</span>]       <span class="op">=</span> df_2324[<span class="st">'team'</span>].<span class="bu">map</span>(<span class="kw">lambda</span> t: nst_data.get(t, (<span class="fl">50.0</span>, <span class="fl">50.0</span>))[<span class="dv">0</span>])</span>
-<span id="cb9-766"><a href="#cb9-766" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'xgf_pct'</span>]      <span class="op">=</span> df_2324[<span class="st">'team'</span>].<span class="bu">map</span>(<span class="kw">lambda</span> t: nst_data.get(t, (<span class="fl">50.0</span>, <span class="fl">50.0</span>))[<span class="dv">1</span>])</span>
-<span id="cb9-767"><a href="#cb9-767" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'pts_rank'</span>]     <span class="op">=</span> df_2324[<span class="st">'points'</span>].rank(ascending<span class="op">=</span><span class="va">False</span>).astype(<span class="bu">int</span>)</span>
-<span id="cb9-768"><a href="#cb9-768" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'cf_rank'</span>]      <span class="op">=</span> df_2324[<span class="st">'cf_pct'</span>].rank(ascending<span class="op">=</span><span class="va">False</span>).astype(<span class="bu">int</span>)</span>
-<span id="cb9-769"><a href="#cb9-769" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'xgf_rank'</span>]     <span class="op">=</span> df_2324[<span class="st">'xgf_pct'</span>].rank(ascending<span class="op">=</span><span class="va">False</span>).astype(<span class="bu">int</span>)</span>
-<span id="cb9-770"><a href="#cb9-770" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'cf_xgf_delta'</span>] <span class="op">=</span> df_2324[<span class="st">'cf_rank'</span>] <span class="op">-</span> df_2324[<span class="st">'xgf_rank'</span>]</span>
-<span id="cb9-771"><a href="#cb9-771" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-772"><a href="#cb9-772" aria-hidden="true" tabindex="-1"></a>    top15 <span class="op">=</span> df_2324.head(<span class="dv">16</span>).copy()</span>
-<span id="cb9-773"><a href="#cb9-773" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-774"><a href="#cb9-774" aria-hidden="true" tabindex="-1"></a>    fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">7</span>))</span>
-<span id="cb9-775"><a href="#cb9-775" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-776"><a href="#cb9-776" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes[<span class="dv">0</span>]</span>
-<span id="cb9-777"><a href="#cb9-777" aria-hidden="true" tabindex="-1"></a>    sc <span class="op">=</span> ax.scatter(top15[<span class="st">'cf_pct'</span>], top15[<span class="st">'xgf_pct'</span>],</span>
-<span id="cb9-778"><a href="#cb9-778" aria-hidden="true" tabindex="-1"></a>                    s<span class="op">=</span>top15[<span class="st">'points'</span>] <span class="op">*</span> <span class="fl">1.5</span>, alpha<span class="op">=</span><span class="fl">0.8</span>,</span>
-<span id="cb9-779"><a href="#cb9-779" aria-hidden="true" tabindex="-1"></a>                    c<span class="op">=</span>top15[<span class="st">'points'</span>], cmap<span class="op">=</span><span class="st">'YlOrRd'</span>)</span>
-<span id="cb9-780"><a href="#cb9-780" aria-hidden="true" tabindex="-1"></a>    plt.colorbar(sc, ax<span class="op">=</span>ax, label<span class="op">=</span><span class="st">'Points'</span>)</span>
-<span id="cb9-781"><a href="#cb9-781" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _, row <span class="kw">in</span> top15.iterrows():</span>
-<span id="cb9-782"><a href="#cb9-782" aria-hidden="true" tabindex="-1"></a>        ax.annotate(row[<span class="st">'team'</span>], (row[<span class="st">'cf_pct'</span>], row[<span class="st">'xgf_pct'</span>]),</span>
-<span id="cb9-783"><a href="#cb9-783" aria-hidden="true" tabindex="-1"></a>                    xytext<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">2</span>), textcoords<span class="op">=</span><span class="st">'offset points'</span>, fontsize<span class="op">=</span><span class="fl">7.5</span>,</span>
-<span id="cb9-784"><a href="#cb9-784" aria-hidden="true" tabindex="-1"></a>                    color<span class="op">=</span><span class="st">'#e6edf3'</span>)</span>
-<span id="cb9-785"><a href="#cb9-785" aria-hidden="true" tabindex="-1"></a>    ax.axhline(<span class="dv">50</span>, color<span class="op">=</span><span class="st">'#8b949e'</span>, ls<span class="op">=</span><span class="st">'--'</span>, lw<span class="op">=</span><span class="dv">1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
-<span id="cb9-786"><a href="#cb9-786" aria-hidden="true" tabindex="-1"></a>    ax.axvline(<span class="dv">50</span>, color<span class="op">=</span><span class="st">'#8b949e'</span>, ls<span class="op">=</span><span class="st">'--'</span>, lw<span class="op">=</span><span class="dv">1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
-<span id="cb9-787"><a href="#cb9-787" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">'Corsi For % (5v5)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb9-788"><a href="#cb9-788" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">'xGF % (5v5)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb9-789"><a href="#cb9-789" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">'CF% vs xGF% — Top 16 Teams (2023-24)</span><span class="ch">\n</span><span class="st">Where they agree and where they diverge'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb9-790"><a href="#cb9-790" aria-hidden="true" tabindex="-1"></a>    ax.grid()</span>
-<span id="cb9-791"><a href="#cb9-791" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-792"><a href="#cb9-792" aria-hidden="true" tabindex="-1"></a>    ax2 <span class="op">=</span> axes[<span class="dv">1</span>]</span>
-<span id="cb9-793"><a href="#cb9-793" aria-hidden="true" tabindex="-1"></a>    rank_df <span class="op">=</span> top15[[<span class="st">'team'</span>,<span class="st">'pts_rank'</span>,<span class="st">'cf_rank'</span>,<span class="st">'xgf_rank'</span>]].copy()</span>
-<span id="cb9-794"><a href="#cb9-794" aria-hidden="true" tabindex="-1"></a>    rank_df.columns <span class="op">=</span> [<span class="st">'Team'</span>,<span class="st">'Points</span><span class="ch">\n</span><span class="st">Rank'</span>,<span class="st">'CF%</span><span class="ch">\n</span><span class="st">Rank'</span>,<span class="st">'xGF%</span><span class="ch">\n</span><span class="st">Rank'</span>]</span>
-<span id="cb9-795"><a href="#cb9-795" aria-hidden="true" tabindex="-1"></a>    rank_matrix <span class="op">=</span> rank_df.set_index(<span class="st">'Team'</span>).astype(<span class="bu">float</span>)</span>
-<span id="cb9-796"><a href="#cb9-796" aria-hidden="true" tabindex="-1"></a>    sns.heatmap(rank_matrix, ax<span class="op">=</span>ax2, cmap<span class="op">=</span><span class="st">'RdYlGn_r'</span>, annot<span class="op">=</span><span class="va">True</span>, fmt<span class="op">=</span><span class="st">'.0f'</span>,</span>
-<span id="cb9-797"><a href="#cb9-797" aria-hidden="true" tabindex="-1"></a>                linewidths<span class="op">=</span><span class="fl">0.5</span>, linecolor<span class="op">=</span><span class="st">'#0d1117'</span>,</span>
-<span id="cb9-798"><a href="#cb9-798" aria-hidden="true" tabindex="-1"></a>                cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Rank (lower=better)'</span>},</span>
-<span id="cb9-799"><a href="#cb9-799" aria-hidden="true" tabindex="-1"></a>                vmin<span class="op">=</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">32</span>)</span>
-<span id="cb9-800"><a href="#cb9-800" aria-hidden="true" tabindex="-1"></a>    ax2.set_title(<span class="st">'Rank Comparison: Three Metric Generations</span><span class="ch">\n</span><span class="st">2023-24 Top Teams'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
-<span id="cb9-801"><a href="#cb9-801" aria-hidden="true" tabindex="-1"></a>    ax2.set_yticklabels(ax2.get_yticklabels(), fontsize<span class="op">=</span><span class="dv">8</span>)</span>
-<span id="cb9-802"><a href="#cb9-802" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-803"><a href="#cb9-803" aria-hidden="true" tabindex="-1"></a>    plt.suptitle(<span class="st">'2023-24 NHL: Do All Three Generations Agree?'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>,</span>
-<span id="cb9-804"><a href="#cb9-804" aria-hidden="true" tabindex="-1"></a>                 fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb9-805"><a href="#cb9-805" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
-<span id="cb9-806"><a href="#cb9-806" aria-hidden="true" tabindex="-1"></a>    plt.savefig(<span class="st">'plots/11_cf_xgf_rank_comparison.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
-<span id="cb9-807"><a href="#cb9-807" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
-<span id="cb9-808"><a href="#cb9-808" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-809"><a href="#cb9-809" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-810"><a href="#cb9-810" aria-hidden="true" tabindex="-1"></a>Boston and Carolina sit in the top-right quadrant — elite in both CF% and xGF%, meaning they dominate possession *and* shot quality. These are teams that analytics across all generations agree on.</span>
-<span id="cb9-811"><a href="#cb9-811" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-812"><a href="#cb9-812" aria-hidden="true" tabindex="-1"></a>The more interesting cases are the divergences. Teams ranked similarly in points but spread apart in Corsi vs xGF% are often being carried by a goalie with an unsustainably high save percentage (high PDO), or running a deliberate shot-blocking system that suppresses Corsi but not quality chances. Those are the situations where knowing which generation of metric to trust — and when — becomes the actual analytical skill.</span>
-<span id="cb9-813"><a href="#cb9-813" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-814"><a href="#cb9-814" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-815"><a href="#cb9-815" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-816"><a href="#cb9-816" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Full Picture: A Timeline of Innovation</span></span>
-<span id="cb9-817"><a href="#cb9-817" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-820"><a href="#cb9-820" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-821"><a href="#cb9-821" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-timeline</span></span>
-<span id="cb9-822"><a href="#cb9-822" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The NHL analytics timeline from 2007 to 2025, organized by metric generation. Each wave of innovation was driven by a specific failure mode in the previous generation."</span></span>
-<span id="cb9-823"><a href="#cb9-823" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
-<span id="cb9-824"><a href="#cb9-824" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-825"><a href="#cb9-825" aria-hidden="true" tabindex="-1"></a>events <span class="op">=</span> [</span>
-<span id="cb9-826"><a href="#cb9-826" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2007</span>, <span class="st">'Jim Corsi begins tracking</span><span class="ch">\n</span><span class="st">all shot attempts in Buffalo'</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
-<span id="cb9-827"><a href="#cb9-827" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2008</span>, <span class="st">'Vic Ferrari publishes</span><span class="ch">\n</span><span class="st">Corsi/Fenwick on behindthenet.ca'</span>, <span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-828"><a href="#cb9-828" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2010</span>, <span class="st">'Tyler Dellow: Corsi predicts</span><span class="ch">\n</span><span class="st">future team success (r=0.72)'</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
-<span id="cb9-829"><a href="#cb9-829" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2012</span>, <span class="st">'War on Ice launches</span><span class="ch">\n</span><span class="st">(Macdonald &amp; Thomas)'</span>, <span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-830"><a href="#cb9-830" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2013</span>, <span class="st">'NaturalStatTrick debuts;</span><span class="ch">\n</span><span class="st">Corsi goes mainstream'</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
-<span id="cb9-831"><a href="#cb9-831" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2014</span>, <span class="st">'Puck Analytics: first NHL</span><span class="ch">\n</span><span class="st">xG models published'</span>, <span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-832"><a href="#cb9-832" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2015</span>, <span class="st">'Moneypuck.com launches</span><span class="ch">\n</span><span class="st">(Peter Tanner xG model)'</span>, <span class="dv">2</span>, <span class="dv">1</span>),</span>
-<span id="cb9-833"><a href="#cb9-833" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2016</span>, <span class="st">'NHL Analytics Summit;</span><span class="ch">\n</span><span class="st">teams hiring full-time quants'</span>, <span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-834"><a href="#cb9-834" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2017</span>, <span class="st">'Evolving Hockey publishes</span><span class="ch">\n</span><span class="st">GAR/WAR framework'</span>, <span class="dv">3</span>, <span class="dv">1</span>),</span>
-<span id="cb9-835"><a href="#cb9-835" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2018</span>, <span class="st">'Sznajder All Three Zones</span><span class="ch">\n</span><span class="st">zone entry database complete'</span>, <span class="dv">4</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-836"><a href="#cb9-836" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2019</span>, <span class="st">'NHL–Sportradar puck</span><span class="ch">\n</span><span class="st">tracking pilot (select arenas)'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
-<span id="cb9-837"><a href="#cb9-837" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2020</span>, <span class="st">'COVID season: teams accelerate</span><span class="ch">\n</span><span class="st">analytics hiring'</span>, <span class="dv">3</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-838"><a href="#cb9-838" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2021</span>, <span class="st">'Sportlogiq powers</span><span class="ch">\n</span><span class="st">NHL Edge tracking rollout'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
-<span id="cb9-839"><a href="#cb9-839" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2022</span>, <span class="st">'NHL Edge IQ launches:</span><span class="ch">\n</span><span class="st">speed, distance, puck tracking'</span>, <span class="dv">4</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-840"><a href="#cb9-840" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2023</span>, <span class="st">'Transformer-based</span><span class="ch">\n</span><span class="st">sequence xG models appear'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
-<span id="cb9-841"><a href="#cb9-841" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2024</span>, <span class="st">'All 32 teams have</span><span class="ch">\n</span><span class="st">full analytics departments'</span>, <span class="dv">4</span>, <span class="op">-</span><span class="dv">1</span>),</span>
-<span id="cb9-842"><a href="#cb9-842" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2025</span>, <span class="st">'AI-driven off-puck</span><span class="ch">\n</span><span class="st">valuation enters public research'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
-<span id="cb9-843"><a href="#cb9-843" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb9-844"><a href="#cb9-844" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-845"><a href="#cb9-845" aria-hidden="true" tabindex="-1"></a>gen_colors_map <span class="op">=</span> {<span class="dv">1</span>: TEAL, <span class="dv">2</span>: GREEN, <span class="dv">3</span>: GOLD, <span class="dv">4</span>: ORANGE}</span>
-<span id="cb9-846"><a href="#cb9-846" aria-hidden="true" tabindex="-1"></a>gen_labels     <span class="op">=</span> {<span class="dv">1</span>: <span class="st">'Gen 1: Corsi/Fenwick'</span>, <span class="dv">2</span>: <span class="st">'Gen 2: xG / PDO'</span>,</span>
-<span id="cb9-847"><a href="#cb9-847" aria-hidden="true" tabindex="-1"></a>                  <span class="dv">3</span>: <span class="st">'Gen 3: WAR / RAPM'</span>,    <span class="dv">4</span>: <span class="st">'Gen 4: Tracking'</span>}</span>
-<span id="cb9-848"><a href="#cb9-848" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-849"><a href="#cb9-849" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">16</span>, <span class="dv">7</span>))</span>
-<span id="cb9-850"><a href="#cb9-850" aria-hidden="true" tabindex="-1"></a>ax.set_facecolor(<span class="st">'#0d1117'</span>)</span>
-<span id="cb9-851"><a href="#cb9-851" aria-hidden="true" tabindex="-1"></a>fig.patch.set_facecolor(<span class="st">'#0d1117'</span>)</span>
-<span id="cb9-852"><a href="#cb9-852" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'#30363d'</span>, lw<span class="op">=</span><span class="dv">2</span>, zorder<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb9-853"><a href="#cb9-853" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-854"><a href="#cb9-854" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> x0, x1, gen <span class="kw">in</span> [(<span class="dv">2007</span>,<span class="dv">2014</span>,<span class="dv">1</span>),(<span class="dv">2014</span>,<span class="dv">2018</span>,<span class="dv">2</span>),(<span class="dv">2018</span>,<span class="dv">2022</span>,<span class="dv">3</span>),(<span class="dv">2022</span>,<span class="dv">2026</span>,<span class="dv">4</span>)]:</span>
-<span id="cb9-855"><a href="#cb9-855" aria-hidden="true" tabindex="-1"></a>    ax.axvspan(x0, x1, alpha<span class="op">=</span><span class="fl">0.07</span>, color<span class="op">=</span>gen_colors_map[gen])</span>
-<span id="cb9-856"><a href="#cb9-856" aria-hidden="true" tabindex="-1"></a>    ax.text((x0<span class="op">+</span>x1)<span class="op">/</span><span class="dv">2</span>, <span class="op">-</span><span class="fl">2.8</span>, gen_labels[gen], ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="fl">8.5</span>,</span>
-<span id="cb9-857"><a href="#cb9-857" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>gen_colors_map[gen], fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb9-858"><a href="#cb9-858" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-859"><a href="#cb9-859" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> year, label, gen, offset <span class="kw">in</span> events:</span>
-<span id="cb9-860"><a href="#cb9-860" aria-hidden="true" tabindex="-1"></a>    col   <span class="op">=</span> gen_colors_map[gen]</span>
-<span id="cb9-861"><a href="#cb9-861" aria-hidden="true" tabindex="-1"></a>    y_end <span class="op">=</span> <span class="fl">1.5</span> <span class="op">*</span> offset</span>
-<span id="cb9-862"><a href="#cb9-862" aria-hidden="true" tabindex="-1"></a>    ax.plot([year, year], [<span class="dv">0</span>, y_end <span class="op">*</span> <span class="fl">0.85</span>], color<span class="op">=</span>col, lw<span class="op">=</span><span class="fl">1.2</span>, zorder<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb9-863"><a href="#cb9-863" aria-hidden="true" tabindex="-1"></a>    ax.scatter(year, <span class="dv">0</span>, color<span class="op">=</span>col, s<span class="op">=</span><span class="dv">60</span>, zorder<span class="op">=</span><span class="dv">3</span>)</span>
-<span id="cb9-864"><a href="#cb9-864" aria-hidden="true" tabindex="-1"></a>    ax.text(year, y_end, label, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'bottom'</span> <span class="cf">if</span> offset <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'top'</span>,</span>
-<span id="cb9-865"><a href="#cb9-865" aria-hidden="true" tabindex="-1"></a>            fontsize<span class="op">=</span><span class="dv">7</span>, color<span class="op">=</span><span class="st">'#e6edf3'</span>,</span>
-<span id="cb9-866"><a href="#cb9-866" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">'round,pad=0.25'</span>, fc<span class="op">=</span><span class="st">'#161b22'</span>, ec<span class="op">=</span>col, alpha<span class="op">=</span><span class="fl">0.85</span>, lw<span class="op">=</span><span class="fl">0.8</span>))</span>
-<span id="cb9-867"><a href="#cb9-867" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-868"><a href="#cb9-868" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="fl">2006.2</span>, <span class="fl">2025.8</span>)</span>
-<span id="cb9-869"><a href="#cb9-869" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="op">-</span><span class="fl">3.5</span>, <span class="fl">3.5</span>)</span>
-<span id="cb9-870"><a href="#cb9-870" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="dv">2007</span>, <span class="dv">2026</span>))</span>
-<span id="cb9-871"><a href="#cb9-871" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels([<span class="bu">str</span>(y) <span class="cf">for</span> y <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2007</span>, <span class="dv">2026</span>)], rotation<span class="op">=</span><span class="dv">45</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
-<span id="cb9-872"><a href="#cb9-872" aria-hidden="true" tabindex="-1"></a>ax.set_yticks([])</span>
-<span id="cb9-873"><a href="#cb9-873" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'NHL Analytics: A History of Innovation (2007–2025)'</span>,</span>
-<span id="cb9-874"><a href="#cb9-874" aria-hidden="true" tabindex="-1"></a>             fontsize<span class="op">=</span><span class="dv">14</span>, pad<span class="op">=</span><span class="dv">15</span>, color<span class="op">=</span><span class="st">'white'</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
-<span id="cb9-875"><a href="#cb9-875" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-876"><a href="#cb9-876" aria-hidden="true" tabindex="-1"></a>patches_legend <span class="op">=</span> [mpatches.Patch(color<span class="op">=</span>v, label<span class="op">=</span>gen_labels[k]) <span class="cf">for</span> k, v <span class="kw">in</span> gen_colors_map.items()]</span>
-<span id="cb9-877"><a href="#cb9-877" aria-hidden="true" tabindex="-1"></a>ax.legend(handles<span class="op">=</span>patches_legend, fontsize<span class="op">=</span><span class="fl">8.5</span>, loc<span class="op">=</span><span class="st">'upper left'</span>,</span>
-<span id="cb9-878"><a href="#cb9-878" aria-hidden="true" tabindex="-1"></a>          facecolor<span class="op">=</span><span class="st">'#161b22'</span>, edgecolor<span class="op">=</span><span class="st">'#30363d'</span>)</span>
-<span id="cb9-879"><a href="#cb9-879" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb9-880"><a href="#cb9-880" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/10_analytics_timeline.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
-<span id="cb9-881"><a href="#cb9-881" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb9-882"><a href="#cb9-882" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-883"><a href="#cb9-883" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-884"><a href="#cb9-884" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-885"><a href="#cb9-885" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-886"><a href="#cb9-886" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion: Why No Single Metric Is Ever Enough</span></span>
-<span id="cb9-887"><a href="#cb9-887" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-888"><a href="#cb9-888" aria-hidden="true" tabindex="-1"></a>The history of NHL analytics is not a story of one metric replacing another. It's a story of **layering** — each generation answering a question the previous one couldn't ask.</span>
-<span id="cb9-889"><a href="#cb9-889" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-890"><a href="#cb9-890" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> The problem <span class="pp">|</span> The solution <span class="pp">|</span></span>
-<span id="cb9-891"><a href="#cb9-891" aria-hidden="true" tabindex="-1"></a><span class="pp">|-------------|-------------|</span></span>
-<span id="cb9-892"><a href="#cb9-892" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> +/− is too noisy <span class="pp">|</span> → Corsi: higher sample rate, real signal <span class="pp">|</span></span>
-<span id="cb9-893"><a href="#cb9-893" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Corsi ignores shot quality <span class="pp">|</span> → xG: probability-weighted shots <span class="pp">|</span></span>
-<span id="cb9-894"><a href="#cb9-894" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> xG can't isolate individual skill <span class="pp">|</span> → WAR/RAPM: regression-based context adjustment <span class="pp">|</span></span>
-<span id="cb9-895"><a href="#cb9-895" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> WAR can't see off-puck play <span class="pp">|</span> → Tracking: full player and puck data <span class="pp">|</span></span>
-<span id="cb9-896"><a href="#cb9-896" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-897"><a href="#cb9-897" aria-hidden="true" tabindex="-1"></a>The modern analyst doesn't choose between these generations. They read all four simultaneously, the way a doctor synthesizes blood work, imaging, and clinical observation before making a diagnosis. Each layer confirms, challenges, or contextualizes the others.</span>
-<span id="cb9-898"><a href="#cb9-898" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-899"><a href="#cb9-899" aria-hidden="true" tabindex="-1"></a>Corsi isn't enough. But it was the insight that started everything — and understanding *why* it isn't enough is what makes every metric that came after it meaningful.</span>
-<span id="cb9-900"><a href="#cb9-900" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-901"><a href="#cb9-901" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-902"><a href="#cb9-902" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-903"><a href="#cb9-903" aria-hidden="true" tabindex="-1"></a><span class="fu">## Further Reading</span></span>
-<span id="cb9-904"><a href="#cb9-904" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-905"><a href="#cb9-905" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Natural Stat Trick](https://www.naturalstattrick.com)** — CF%, xGF%, GSAx for every team and player</span>
-<span id="cb9-906"><a href="#cb9-906" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Evolving Hockey](https://www.evolving-hockey.com)** — WAR/GAR models, RAPM, contract tools</span>
-<span id="cb9-907"><a href="#cb9-907" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[MoneyPuck](https://moneypuck.com)** — xG models, team and player dashboards</span>
-<span id="cb9-908"><a href="#cb9-908" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Hockey Graphs](https://hockey-graphs.com)** — Long-form analytics writing</span>
-<span id="cb9-909"><a href="#cb9-909" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[All Three Zones (Corey Sznajder)](https://twitter.com/ShutdownLine)** — Zone entry/exit tracking</span>
-<span id="cb9-910"><a href="#cb9-910" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[NHL Edge](https://www.nhl.com/stats)** — Official tracking-era stats</span>
-<span id="cb9-911"><a href="#cb9-911" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Arsenault, M. &amp; Desjardins, G. (2019) — *Wins Above Replacement in the NHL* — Evolving Hockey</span>
-<span id="cb9-912"><a href="#cb9-912" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Tulsky, E. et al. — *[Zone Entry and Exit Research](https://hockey-graphs.com/2014/03/20/zone-exits-and-entries-the-effects-of-puck-possession-in-the-neutral-zone/)* — Hockey Graphs, 2014</span>
-<span id="cb9-913"><a href="#cb9-913" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-914"><a href="#cb9-914" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb9-915"><a href="#cb9-915" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-916"><a href="#cb9-916" aria-hidden="true" tabindex="-1"></a>*Data sourced from the NHL public API and curated public records. All analysis reproducible via the companion notebook.*</span>
+<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>ax2.set_xlim(<span class="dv">0</span>, <span class="dv">55</span>)   <span class="co"># wider x-axis to fit labels</span></span>
+<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(right<span class="op">=</span><span class="fl">0.88</span>)  <span class="co"># pull right edge in so labels aren't clipped</span></span>
+<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Generation 2: Expected Goals (xG) Model'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/04_xg_heatmap_and_shot_types.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
+<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a>The heatmap makes the geography of scoring immediately intuitive. The slot — the rectangular danger area from the crease out to roughly the top of the face-off circles — is where a 15–25% xG shot lives. Get to the middle, and you're dangerous. Drift wide or shoot from the perimeter, and you're feeding the goalie warm-up reps.</span>
+<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a>The bar chart on the right makes the Corsi limitation concrete: there's a **15× difference in goal probability** between a blue-line slap shot (2%) and a crease deflection (30%). Counting them equally isn't just imprecise — it's genuinely misleading about which teams are creating real danger.</span>
+<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a><span class="fu">### The PDO Insight: Separating Luck from Skill</span></span>
+<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a>A key companion metric to xG was **PDO** (named after the analyst who popularized it), defined as:</span>
+<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a>\text{PDO} = \text{Shooting \%} + \text{Save \%}</span>
+<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a>The insight: for an average team facing average goaltending, PDO should hover around 100% (or 1.000 in decimal form). Teams with extremely high PDO — say, 103 — are likely getting unusually lucky shooting percentages or unsustainably good goaltending. xG helps isolate *which* component is real talent versus regression bait.</span>
+<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a><span class="fu">### Key xG-Era Derived Metrics</span></span>
+<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Metric <span class="pp">|</span> Formula <span class="pp">|</span> What it captures <span class="pp">|</span></span>
+<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a><span class="pp">|--------|---------|-----------------|</span></span>
+<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **xGF%** <span class="pp">|</span> $\frac{xGF}{xGF + xGA}$ <span class="pp">|</span> Shot quality share — possession *quality* <span class="pp">|</span></span>
+<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **xG/60** <span class="pp">|</span> $\frac{xG}{TOI} \times 60$ <span class="pp">|</span> Rate-normalized offense or defense <span class="pp">|</span></span>
+<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **GSAx** <span class="pp">|</span> $\text{Goals Saved} - xGA$ <span class="pp">|</span> Goalie performance above expectation <span class="pp">|</span></span>
+<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **PDO** <span class="pp">|</span> $\text{Sh\%} + \text{Sv\%}$ <span class="pp">|</span> Composite luck/sustainability indicator <span class="pp">|</span></span>
+<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a>xGF% became the dominant team and player evaluation metric by around 2016–17, replacing CF% as the go-to for identifying sustainable performance. But a new problem was emerging: even xGF% couldn't tell you how much of a team's quality was attributable to any *individual* player.</span>
+<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generation 3 — Player Value: WAR, RAPM &amp; GSVA (2018–2022)</span></span>
+<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem Being Solved</span></span>
+<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *"Corsi tells us about possession. xG tells us about shot quality. Neither tells us how many wins a single player is actually worth."*</span></span>
+<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-560"><a href="#cb9-560" aria-hidden="true" tabindex="-1"></a>By the late 2010s, hockey analytics borrowed the most important conceptual framework in baseball statistics: **Wins Above Replacement (WAR)**. The question it answers is deceptively simple — if you replaced this player with a freely available replacement-level player (a fringe AHL call-up), how many fewer wins would your team have?</span>
+<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a>Collapsing all contributions into a single number allows direct comparison across positions, roles, and ice-time situations. A 4-WAR forward and a 4-WAR defenseman are equally valuable, even if they contribute in completely different ways.</span>
+<span id="cb9-563"><a href="#cb9-563" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-564"><a href="#cb9-564" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Engine: RAPM</span></span>
+<span id="cb9-565"><a href="#cb9-565" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a>The technical core of hockey WAR is **Regularized Adjusted Plus/Minus (RAPM)** — a ridge-regression model that estimates each player's individual contribution to on-ice xG share while simultaneously controlling for all of their teammates and opponents.</span>
+<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a>The model estimates player effects $\beta_p$ by solving:</span>
+<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-570"><a href="#cb9-570" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-571"><a href="#cb9-571" aria-hidden="true" tabindex="-1"></a>xGF\%_{\text{shift}} = \alpha + \sum_{p \in \text{skaters on ice}} \beta_p + \varepsilon</span>
+<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a>With an L2 (ridge) regularization penalty that shrinks uncertain estimates toward zero:</span>
+<span id="cb9-575"><a href="#cb9-575" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-576"><a href="#cb9-576" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-577"><a href="#cb9-577" aria-hidden="true" tabindex="-1"></a>\hat{\boldsymbol{\beta}} = \arg\min_{\boldsymbol{\beta}} \left<span class="co">[</span><span class="ot"> \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \lambda \|\boldsymbol{\beta}\|^2 \right</span><span class="co">]</span></span>
+<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a>The $\lambda$ penalty is critical: it prevents overfitting for players with small sample sizes (fourth-liners, healthy scratches playing spot minutes). Without it, a player who happened to be on the ice for a fluky 3-goal shift in 12 total minutes would look like the best player in the league.</span>
+<span id="cb9-581"><a href="#cb9-581" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-584"><a href="#cb9-584" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb9-585"><a href="#cb9-585" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-rapm</span></span>
+<span id="cb9-586"><a href="#cb9-586" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "RAPM ridge regularization in action. Left: larger λ values shrink low-TOI players' estimates more aggressively toward zero. Right: with the right λ, RAPM recovers the underlying true talent fairly well — high-TOI players (yellow) cluster tighter around the 45° line."</span></span>
+<span id="cb9-587"><a href="#cb9-587" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-588"><a href="#cb9-588" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb9-589"><a href="#cb9-589" aria-hidden="true" tabindex="-1"></a>n_players <span class="op">=</span> <span class="dv">600</span></span>
+<span id="cb9-590"><a href="#cb9-590" aria-hidden="true" tabindex="-1"></a>true_rapm    <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="fl">1.5</span>, n_players)</span>
+<span id="cb9-591"><a href="#cb9-591" aria-hidden="true" tabindex="-1"></a>toi_minutes  <span class="op">=</span> np.random.lognormal(np.log(<span class="dv">600</span>), <span class="fl">0.5</span>, n_players)</span>
+<span id="cb9-592"><a href="#cb9-592" aria-hidden="true" tabindex="-1"></a>noise_scale  <span class="op">=</span> <span class="dv">3000</span> <span class="op">/</span> toi_minutes</span>
+<span id="cb9-593"><a href="#cb9-593" aria-hidden="true" tabindex="-1"></a>observed     <span class="op">=</span> true_rapm <span class="op">+</span> np.random.normal(<span class="dv">0</span>, noise_scale)</span>
+<span id="cb9-594"><a href="#cb9-594" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-595"><a href="#cb9-595" aria-hidden="true" tabindex="-1"></a>ridge_estimates <span class="op">=</span> {}</span>
+<span id="cb9-596"><a href="#cb9-596" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lam <span class="kw">in</span> [<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="fl">2.0</span>, <span class="fl">8.0</span>]:</span>
+<span id="cb9-597"><a href="#cb9-597" aria-hidden="true" tabindex="-1"></a>    shrinkage <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> lam <span class="op">/</span> (toi_minutes <span class="op">/</span> <span class="dv">60</span>))</span>
+<span id="cb9-598"><a href="#cb9-598" aria-hidden="true" tabindex="-1"></a>    ridge_estimates[lam] <span class="op">=</span> observed <span class="op">*</span> shrinkage</span>
+<span id="cb9-599"><a href="#cb9-599" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-600"><a href="#cb9-600" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">5</span>))</span>
+<span id="cb9-601"><a href="#cb9-601" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-602"><a href="#cb9-602" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>]</span>
+<span id="cb9-603"><a href="#cb9-603" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lam, col <span class="kw">in</span> <span class="bu">zip</span>([<span class="fl">0.5</span>, <span class="fl">2.0</span>, <span class="fl">8.0</span>], [GREEN, GOLD, NHL_RED]):</span>
+<span id="cb9-604"><a href="#cb9-604" aria-hidden="true" tabindex="-1"></a>    est   <span class="op">=</span> ridge_estimates[lam]</span>
+<span id="cb9-605"><a href="#cb9-605" aria-hidden="true" tabindex="-1"></a>    r_val <span class="op">=</span> np.corrcoef(true_rapm, est)[<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb9-606"><a href="#cb9-606" aria-hidden="true" tabindex="-1"></a>    ax.scatter(toi_minutes<span class="op">/</span><span class="dv">60</span>, np.<span class="bu">abs</span>(observed <span class="op">-</span> est), alpha<span class="op">=</span><span class="fl">0.15</span>, s<span class="op">=</span><span class="dv">8</span>, color<span class="op">=</span>col)</span>
+<span id="cb9-607"><a href="#cb9-607" aria-hidden="true" tabindex="-1"></a>    ax.plot([], [], color<span class="op">=</span>col, label<span class="op">=</span><span class="ss">f'λ=</span><span class="sc">{</span>lam<span class="sc">}</span><span class="ss">  (r=</span><span class="sc">{</span>r_val<span class="sc">:.3f}</span><span class="ss"> vs truth)'</span>)</span>
+<span id="cb9-608"><a href="#cb9-608" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'TOI (hours played)'</span>)</span>
+<span id="cb9-609"><a href="#cb9-609" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Shrinkage applied |raw − ridge|'</span>)</span>
+<span id="cb9-610"><a href="#cb9-610" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Ridge Regularization: More Shrinkage for Low-TOI Players'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb9-611"><a href="#cb9-611" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb9-612"><a href="#cb9-612" aria-hidden="true" tabindex="-1"></a>ax.grid()</span>
+<span id="cb9-613"><a href="#cb9-613" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-614"><a href="#cb9-614" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> axes[<span class="dv">1</span>]</span>
+<span id="cb9-615"><a href="#cb9-615" aria-hidden="true" tabindex="-1"></a>best_est <span class="op">=</span> ridge_estimates[<span class="fl">2.0</span>]</span>
+<span id="cb9-616"><a href="#cb9-616" aria-hidden="true" tabindex="-1"></a>sc <span class="op">=</span> ax2.scatter(true_rapm, best_est, c<span class="op">=</span>toi_minutes<span class="op">/</span><span class="dv">60</span>, cmap<span class="op">=</span><span class="st">'viridis'</span>, alpha<span class="op">=</span><span class="fl">0.4</span>, s<span class="op">=</span><span class="dv">15</span>)</span>
+<span id="cb9-617"><a href="#cb9-617" aria-hidden="true" tabindex="-1"></a>plt.colorbar(sc, ax<span class="op">=</span>ax2, label<span class="op">=</span><span class="st">'TOI (hours)'</span>)</span>
+<span id="cb9-618"><a href="#cb9-618" aria-hidden="true" tabindex="-1"></a>m, b <span class="op">=</span> np.polyfit(true_rapm, best_est, <span class="dv">1</span>)</span>
+<span id="cb9-619"><a href="#cb9-619" aria-hidden="true" tabindex="-1"></a>xfit <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">100</span>)</span>
+<span id="cb9-620"><a href="#cb9-620" aria-hidden="true" tabindex="-1"></a>ax2.plot(xfit, m<span class="op">*</span>xfit<span class="op">+</span>b, color<span class="op">=</span>ORANGE, lw<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb9-621"><a href="#cb9-621" aria-hidden="true" tabindex="-1"></a>ax2.plot(xfit, xfit, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">'#8b949e'</span>, lw<span class="op">=</span><span class="fl">1.2</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb9-622"><a href="#cb9-622" aria-hidden="true" tabindex="-1"></a>r_best <span class="op">=</span> np.corrcoef(true_rapm, best_est)[<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb9-623"><a href="#cb9-623" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'True RAPM talent'</span>)</span>
+<span id="cb9-624"><a href="#cb9-624" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">'Estimated RAPM (λ=2.0)'</span>)</span>
+<span id="cb9-625"><a href="#cb9-625" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="ss">f'RAPM Recovery of True Talent (r=</span><span class="sc">{</span>r_best<span class="sc">:.3f}</span><span class="ss">)</span><span class="ch">\n</span><span class="ss">Colored by TOI — high TOI = tighter estimates'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb9-626"><a href="#cb9-626" aria-hidden="true" tabindex="-1"></a>ax2.grid()</span>
+<span id="cb9-627"><a href="#cb9-627" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-628"><a href="#cb9-628" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'The RAPM Engine: Ridge Regression Inside WAR'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb9-629"><a href="#cb9-629" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-630"><a href="#cb9-630" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/07_rapm_ridge_regression.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
+<span id="cb9-631"><a href="#cb9-631" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb9-632"><a href="#cb9-632" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-633"><a href="#cb9-633" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-634"><a href="#cb9-634" aria-hidden="true" tabindex="-1"></a>The left panel shows the key insight: the model *deliberately* shrinks low-TOI players' estimates more than high-TOI players. This is the correct move — a player with 200 minutes of ice time has a far noisier RAPM estimate than one with 1,400 minutes, and the model reflects that uncertainty by pulling the estimate closer to league average. The right panel shows that at a moderate λ, RAPM does a good job recovering actual underlying talent — not perfect, but meaningfully better than raw observed statistics.</span>
+<span id="cb9-635"><a href="#cb9-635" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-636"><a href="#cb9-636" aria-hidden="true" tabindex="-1"></a><span class="fu">### From RAPM to WAR</span></span>
+<span id="cb9-637"><a href="#cb9-637" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-638"><a href="#cb9-638" aria-hidden="true" tabindex="-1"></a>The **Evolving Hockey WAR model** (Arsenault &amp; Desjardins, 2019) builds on RAPM by:</span>
+<span id="cb9-639"><a href="#cb9-639" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-640"><a href="#cb9-640" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Breaking the player effect into components: even-strength offense, even-strength defense, powerplay, penalty kill, penalties drawn/taken, faceoffs</span>
+<span id="cb9-641"><a href="#cb9-641" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Scaling each component from xG units to **Goals Above Replacement (GAR)**</span>
+<span id="cb9-642"><a href="#cb9-642" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Converting goals to wins using a league-wide goals-per-win factor (~5–6 goals per win)</span>
+<span id="cb9-643"><a href="#cb9-643" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-644"><a href="#cb9-644" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-645"><a href="#cb9-645" aria-hidden="true" tabindex="-1"></a>\text{WAR} = \frac{\text{GAR}_{\text{total}} }{\text{Goals Per Win}}</span>
+<span id="cb9-646"><a href="#cb9-646" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-647"><a href="#cb9-647" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-648"><a href="#cb9-648" aria-hidden="true" tabindex="-1"></a>For goalies, the equivalent is **Goals Saved Above Expected (GSAx)**:</span>
+<span id="cb9-649"><a href="#cb9-649" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-650"><a href="#cb9-650" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-651"><a href="#cb9-651" aria-hidden="true" tabindex="-1"></a>\text{GSAx} = xGA - GA</span>
+<span id="cb9-652"><a href="#cb9-652" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb9-653"><a href="#cb9-653" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-654"><a href="#cb9-654" aria-hidden="true" tabindex="-1"></a>A goalie with GSAx = +12 saved 12 more goals than an average goalie would have against the same shot profile. At ~5–6 goals per win, that's roughly 2 wins of goalie value above average.</span>
+<span id="cb9-655"><a href="#cb9-655" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-656"><a href="#cb9-656" aria-hidden="true" tabindex="-1"></a><span class="fu">### The WAR Era's Limits</span></span>
+<span id="cb9-657"><a href="#cb9-657" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-658"><a href="#cb9-658" aria-hidden="true" tabindex="-1"></a>WAR was a genuine leap — suddenly you could ask "is this defenseman worth his $6M contract?" with actual math behind the answer. But the model remained constrained by what the data could see: **everything measured was still shot-attempt derived**. A player's defensive positioning, his off-puck movement, his ability to win board battles and create separation — none of it registered unless it eventually showed up as a shot attempt. The map was better, but the territory was still mostly invisible.</span>
+<span id="cb9-659"><a href="#cb9-659" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-660"><a href="#cb9-660" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-661"><a href="#cb9-661" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-662"><a href="#cb9-662" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generation 4 — The Tracking Era (2022–Present)</span></span>
+<span id="cb9-663"><a href="#cb9-663" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-664"><a href="#cb9-664" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem Being Solved</span></span>
+<span id="cb9-665"><a href="#cb9-665" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-666"><a href="#cb9-666" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *"Hockey is 60 minutes of off-puck movement, defensive reads, and positioning decisions. Most of it never becomes a shot attempt."*</span></span>
+<span id="cb9-667"><a href="#cb9-667" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-668"><a href="#cb9-668" aria-hidden="true" tabindex="-1"></a>The NHL's partnership with optical player tracking technology — deployed at scale starting around 2021–22 — finally opened the door to the layer of hockey that had always been analytically invisible. Every player's position, speed, and movement is now tracked multiple times per second, and the puck itself carries a chip that logs its location and velocity.</span>
+<span id="cb9-669"><a href="#cb9-669" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-670"><a href="#cb9-670" aria-hidden="true" tabindex="-1"></a><span class="fu">### Zone Entries and Exits: The Bridge Metric</span></span>
+<span id="cb9-671"><a href="#cb9-671" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-672"><a href="#cb9-672" aria-hidden="true" tabindex="-1"></a>Even before full tracking arrived, manually-tracked **zone entry and exit data** (pioneered by Corey Sznajder's *All Three Zones* project starting around 2013) revealed something fundamental about how offense is actually generated.</span>
+<span id="cb9-673"><a href="#cb9-673" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-676"><a href="#cb9-676" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb9-677"><a href="#cb9-677" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-zone-entries</span></span>
+<span id="cb9-678"><a href="#cb9-678" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Zone entry value by entry type. Controlled entries — carrying or passing the puck across the blue line with possession retained — generate roughly 3× the xG and shot attempts of dump-ins. This single finding reshaped how coaches think about the neutral zone."</span></span>
+<span id="cb9-679"><a href="#cb9-679" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-680"><a href="#cb9-680" aria-hidden="true" tabindex="-1"></a>entry_types       <span class="op">=</span> [<span class="st">'Dump-in'</span>, <span class="st">'Controlled</span><span class="ch">\n</span><span class="st">(carry)'</span>, <span class="st">'Controlled</span><span class="ch">\n</span><span class="st">(pass)'</span>]</span>
+<span id="cb9-681"><a href="#cb9-681" aria-hidden="true" tabindex="-1"></a>xg_per_entry      <span class="op">=</span> [<span class="fl">0.028</span>, <span class="fl">0.087</span>, <span class="fl">0.094</span>]</span>
+<span id="cb9-682"><a href="#cb9-682" aria-hidden="true" tabindex="-1"></a>shots_per_entry   <span class="op">=</span> [<span class="fl">0.85</span>, <span class="fl">2.61</span>, <span class="fl">2.78</span>]</span>
+<span id="cb9-683"><a href="#cb9-683" aria-hidden="true" tabindex="-1"></a>possession_secs   <span class="op">=</span> [<span class="fl">8.2</span>, <span class="fl">24.5</span>, <span class="fl">26.8</span>]</span>
+<span id="cb9-684"><a href="#cb9-684" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-685"><a href="#cb9-685" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">5</span>))</span>
+<span id="cb9-686"><a href="#cb9-686" aria-hidden="true" tabindex="-1"></a>bar_colors <span class="op">=</span> [ORANGE, TEAL, GREEN]</span>
+<span id="cb9-687"><a href="#cb9-687" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-688"><a href="#cb9-688" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, vals, title, ylabel <span class="kw">in</span> <span class="bu">zip</span>(</span>
+<span id="cb9-689"><a href="#cb9-689" aria-hidden="true" tabindex="-1"></a>    axes,</span>
+<span id="cb9-690"><a href="#cb9-690" aria-hidden="true" tabindex="-1"></a>    [xg_per_entry, shots_per_entry, possession_secs],</span>
+<span id="cb9-691"><a href="#cb9-691" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'xG per Zone Entry'</span>, <span class="st">'Shot Attempts per Entry'</span>, <span class="st">'Avg Possession (sec)'</span>],</span>
+<span id="cb9-692"><a href="#cb9-692" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'xG'</span>, <span class="st">'Corsi events'</span>, <span class="st">'Seconds'</span>]</span>
+<span id="cb9-693"><a href="#cb9-693" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb9-694"><a href="#cb9-694" aria-hidden="true" tabindex="-1"></a>    bars <span class="op">=</span> ax.bar(entry_types, vals, color<span class="op">=</span>bar_colors, alpha<span class="op">=</span><span class="fl">0.85</span>, width<span class="op">=</span><span class="fl">0.55</span>)</span>
+<span id="cb9-695"><a href="#cb9-695" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> bar, val <span class="kw">in</span> <span class="bu">zip</span>(bars, vals):</span>
+<span id="cb9-696"><a href="#cb9-696" aria-hidden="true" tabindex="-1"></a>        ax.text(bar.get_x() <span class="op">+</span> bar.get_width()<span class="op">/</span><span class="dv">2</span>, bar.get_height() <span class="op">+</span> <span class="bu">max</span>(vals)<span class="op">*</span><span class="fl">0.02</span>,</span>
+<span id="cb9-697"><a href="#cb9-697" aria-hidden="true" tabindex="-1"></a>                <span class="ss">f'</span><span class="sc">{</span>val<span class="sc">:.3f}</span><span class="ss">'</span> <span class="cf">if</span> ylabel <span class="op">==</span> <span class="st">'xG'</span> <span class="cf">else</span> <span class="ss">f'</span><span class="sc">{</span>val<span class="sc">:.2f}</span><span class="ss">'</span>,</span>
+<span id="cb9-698"><a href="#cb9-698" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="fl">9.5</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb9-699"><a href="#cb9-699" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb9-700"><a href="#cb9-700" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(ylabel)</span>
+<span id="cb9-701"><a href="#cb9-701" aria-hidden="true" tabindex="-1"></a>    ax.grid(axis<span class="op">=</span><span class="st">'y'</span>)</span>
+<span id="cb9-702"><a href="#cb9-702" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-703"><a href="#cb9-703" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Zone Entry Quality: Controlled Entries Are ~3× More Valuable</span><span class="ch">\n</span><span class="st">'</span></span>
+<span id="cb9-704"><a href="#cb9-704" aria-hidden="true" tabindex="-1"></a>             <span class="st">'(Sznajder All Three Zones + public research, 2015–2024)'</span>,</span>
+<span id="cb9-705"><a href="#cb9-705" aria-hidden="true" tabindex="-1"></a>             fontsize<span class="op">=</span><span class="dv">12</span>, y<span class="op">=</span><span class="fl">1.01</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb9-706"><a href="#cb9-706" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-707"><a href="#cb9-707" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/08_zone_entry_value.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
+<span id="cb9-708"><a href="#cb9-708" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb9-709"><a href="#cb9-709" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-710"><a href="#cb9-710" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-711"><a href="#cb9-711" aria-hidden="true" tabindex="-1"></a>This finding — that a controlled entry generates roughly three times the offensive output of a dump-in — had immediate tactical implications. Coaches started placing greater value on forwards who could carry or pass the puck cleanly through the neutral zone. The dump-and-chase game that had dominated hockey strategy for decades was reframed not as a style choice, but as a measurable concession of offense.</span>
+<span id="cb9-712"><a href="#cb9-712" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-713"><a href="#cb9-713" aria-hidden="true" tabindex="-1"></a><span class="fu">### Tracking-Era Metrics</span></span>
+<span id="cb9-714"><a href="#cb9-714" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-715"><a href="#cb9-715" aria-hidden="true" tabindex="-1"></a>Full player and puck tracking has since enabled a new generation of measurements that previously existed only as coaching intuitions:</span>
+<span id="cb9-716"><a href="#cb9-716" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-717"><a href="#cb9-717" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Metric <span class="pp">|</span> What it measures <span class="pp">|</span> Technology required <span class="pp">|</span></span>
+<span id="cb9-718"><a href="#cb9-718" aria-hidden="true" tabindex="-1"></a><span class="pp">|--------|-----------------|---------------------|</span></span>
+<span id="cb9-719"><a href="#cb9-719" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Puck speed at shot** <span class="pp">|</span> Velocity (mph) at release <span class="pp">|</span> Puck chip <span class="pp">|</span></span>
+<span id="cb9-720"><a href="#cb9-720" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Rush shot flag** <span class="pp">|</span> Shot within 4 sec of zone entry <span class="pp">|</span> Event + tracking <span class="pp">|</span></span>
+<span id="cb9-721"><a href="#cb9-721" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Pass before shot** <span class="pp">|</span> Cross-ice pass preceding attempt <span class="pp">|</span> Sportlogiq <span class="pp">|</span></span>
+<span id="cb9-722"><a href="#cb9-722" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Defensive zone coverage** <span class="pp">|</span> % of time in correct position <span class="pp">|</span> Player tracking <span class="pp">|</span></span>
+<span id="cb9-723"><a href="#cb9-723" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Separation on entry** <span class="pp">|</span> Skater speed vs nearest defender <span class="pp">|</span> Player tracking <span class="pp">|</span></span>
+<span id="cb9-724"><a href="#cb9-724" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Expected Turnovers (xTO)** <span class="pp">|</span> Probability of puck loss on given play <span class="pp">|</span> ML on tracking data <span class="pp">|</span></span>
+<span id="cb9-725"><a href="#cb9-725" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-726"><a href="#cb9-726" aria-hidden="true" tabindex="-1"></a><span class="fu">### What's Next: The AI Frontier</span></span>
+<span id="cb9-727"><a href="#cb9-727" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-728"><a href="#cb9-728" aria-hidden="true" tabindex="-1"></a>The most advanced work happening in NHL analytics departments right now — most of it proprietary — is pushing into territory that would have been science fiction a decade ago:</span>
+<span id="cb9-729"><a href="#cb9-729" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-730"><a href="#cb9-730" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Graph neural networks** that model all 10 skaters simultaneously as a formation, not as individuals</span>
+<span id="cb9-731"><a href="#cb9-731" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Sequence models (LSTM / Transformer)** that compute xG based on the last 10–15 seconds of play, not just the shot itself</span>
+<span id="cb9-732"><a href="#cb9-732" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Off-puck movement valuation** using optical flow to assign credit for creating passing lanes and drawing defenders</span>
+<span id="cb9-733"><a href="#cb9-733" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Integrated contract models** that predict future performance and cap value from the full metric stack</span>
+<span id="cb9-734"><a href="#cb9-734" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-735"><a href="#cb9-735" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-736"><a href="#cb9-736" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-737"><a href="#cb9-737" aria-hidden="true" tabindex="-1"></a><span class="fu">## Putting It All Together: How the Generations Agree (and Disagree)</span></span>
+<span id="cb9-738"><a href="#cb9-738" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-739"><a href="#cb9-739" aria-hidden="true" tabindex="-1"></a>Let's close with a concrete look at what happens when you apply Generation 1, 2, and 3 metrics to the same season and ask: do they rank teams the same way?</span>
+<span id="cb9-740"><a href="#cb9-740" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-743"><a href="#cb9-743" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb9-744"><a href="#cb9-744" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-gen-comparison</span></span>
+<span id="cb9-745"><a href="#cb9-745" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "CF% vs xGF% for the top 16 teams of 2023-24 (left), and a rank comparison across three metric generations (right). Where the columns agree, the signal is strong. Where they diverge — like teams ranked 8th in points but 18th in CF% — there's an interesting analytical story to tell."</span></span>
+<span id="cb9-746"><a href="#cb9-746" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-747"><a href="#cb9-747" aria-hidden="true" tabindex="-1"></a>df_2324 <span class="op">=</span> get_standings(<span class="st">'20232024'</span>)</span>
+<span id="cb9-748"><a href="#cb9-748" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-749"><a href="#cb9-749" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> df_2324.empty:</span>
+<span id="cb9-750"><a href="#cb9-750" aria-hidden="true" tabindex="-1"></a>    df_2324 <span class="op">=</span> df_2324.sort_values(<span class="st">'points'</span>, ascending<span class="op">=</span><span class="va">False</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-751"><a href="#cb9-751" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-752"><a href="#cb9-752" aria-hidden="true" tabindex="-1"></a>    nst_data <span class="op">=</span> {</span>
+<span id="cb9-753"><a href="#cb9-753" aria-hidden="true" tabindex="-1"></a>        <span class="st">'BOS'</span>: (<span class="fl">57.2</span>, <span class="fl">56.1</span>), <span class="st">'NYR'</span>: (<span class="fl">54.1</span>, <span class="fl">53.8</span>), <span class="st">'FLA'</span>: (<span class="fl">51.3</span>, <span class="fl">52.4</span>),</span>
+<span id="cb9-754"><a href="#cb9-754" aria-hidden="true" tabindex="-1"></a>        <span class="st">'VAN'</span>: (<span class="fl">52.8</span>, <span class="fl">54.2</span>), <span class="st">'COL'</span>: (<span class="fl">53.4</span>, <span class="fl">52.8</span>), <span class="st">'DAL'</span>: (<span class="fl">50.9</span>, <span class="fl">52.1</span>),</span>
+<span id="cb9-755"><a href="#cb9-755" aria-hidden="true" tabindex="-1"></a>        <span class="st">'WPG'</span>: (<span class="fl">53.1</span>, <span class="fl">51.7</span>), <span class="st">'NSH'</span>: (<span class="fl">49.8</span>, <span class="fl">50.2</span>), <span class="st">'CAR'</span>: (<span class="fl">55.6</span>, <span class="fl">56.3</span>),</span>
+<span id="cb9-756"><a href="#cb9-756" aria-hidden="true" tabindex="-1"></a>        <span class="st">'EDM'</span>: (<span class="fl">50.4</span>, <span class="fl">51.8</span>), <span class="st">'VGK'</span>: (<span class="fl">51.7</span>, <span class="fl">53.0</span>), <span class="st">'TBL'</span>: (<span class="fl">50.1</span>, <span class="fl">50.8</span>),</span>
+<span id="cb9-757"><a href="#cb9-757" aria-hidden="true" tabindex="-1"></a>        <span class="st">'TOR'</span>: (<span class="fl">51.9</span>, <span class="fl">52.6</span>), <span class="st">'PIT'</span>: (<span class="fl">47.3</span>, <span class="fl">48.1</span>), <span class="st">'BUF'</span>: (<span class="fl">46.8</span>, <span class="fl">47.5</span>),</span>
+<span id="cb9-758"><a href="#cb9-758" aria-hidden="true" tabindex="-1"></a>        <span class="st">'NJD'</span>: (<span class="fl">49.5</span>, <span class="fl">50.1</span>), <span class="st">'STL'</span>: (<span class="fl">47.1</span>, <span class="fl">48.4</span>), <span class="st">'LAK'</span>: (<span class="fl">52.3</span>, <span class="fl">53.1</span>),</span>
+<span id="cb9-759"><a href="#cb9-759" aria-hidden="true" tabindex="-1"></a>        <span class="st">'SEA'</span>: (<span class="fl">48.7</span>, <span class="fl">49.5</span>), <span class="st">'MIN'</span>: (<span class="fl">50.8</span>, <span class="fl">51.2</span>), <span class="st">'OTT'</span>: (<span class="fl">49.2</span>, <span class="fl">49.8</span>),</span>
+<span id="cb9-760"><a href="#cb9-760" aria-hidden="true" tabindex="-1"></a>        <span class="st">'DET'</span>: (<span class="fl">46.5</span>, <span class="fl">47.1</span>), <span class="st">'PHI'</span>: (<span class="fl">45.8</span>, <span class="fl">46.2</span>), <span class="st">'NYI'</span>: (<span class="fl">48.1</span>, <span class="fl">48.9</span>),</span>
+<span id="cb9-761"><a href="#cb9-761" aria-hidden="true" tabindex="-1"></a>        <span class="st">'MTL'</span>: (<span class="fl">44.3</span>, <span class="fl">45.1</span>), <span class="st">'CGY'</span>: (<span class="fl">48.4</span>, <span class="fl">49.0</span>), <span class="st">'ARI'</span>: (<span class="fl">43.2</span>, <span class="fl">44.0</span>),</span>
+<span id="cb9-762"><a href="#cb9-762" aria-hidden="true" tabindex="-1"></a>        <span class="st">'CBJ'</span>: (<span class="fl">42.8</span>, <span class="fl">43.5</span>), <span class="st">'SJS'</span>: (<span class="fl">41.5</span>, <span class="fl">42.2</span>), <span class="st">'CHI'</span>: (<span class="fl">40.1</span>, <span class="fl">41.3</span>),</span>
+<span id="cb9-763"><a href="#cb9-763" aria-hidden="true" tabindex="-1"></a>        <span class="st">'ANA'</span>: (<span class="fl">44.8</span>, <span class="fl">45.6</span>), <span class="st">'WSH'</span>: (<span class="fl">49.1</span>, <span class="fl">50.3</span>),</span>
+<span id="cb9-764"><a href="#cb9-764" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-765"><a href="#cb9-765" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-766"><a href="#cb9-766" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'cf_pct'</span>]       <span class="op">=</span> df_2324[<span class="st">'team'</span>].<span class="bu">map</span>(<span class="kw">lambda</span> t: nst_data.get(t, (<span class="fl">50.0</span>, <span class="fl">50.0</span>))[<span class="dv">0</span>])</span>
+<span id="cb9-767"><a href="#cb9-767" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'xgf_pct'</span>]      <span class="op">=</span> df_2324[<span class="st">'team'</span>].<span class="bu">map</span>(<span class="kw">lambda</span> t: nst_data.get(t, (<span class="fl">50.0</span>, <span class="fl">50.0</span>))[<span class="dv">1</span>])</span>
+<span id="cb9-768"><a href="#cb9-768" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'pts_rank'</span>]     <span class="op">=</span> df_2324[<span class="st">'points'</span>].rank(ascending<span class="op">=</span><span class="va">False</span>).astype(<span class="bu">int</span>)</span>
+<span id="cb9-769"><a href="#cb9-769" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'cf_rank'</span>]      <span class="op">=</span> df_2324[<span class="st">'cf_pct'</span>].rank(ascending<span class="op">=</span><span class="va">False</span>).astype(<span class="bu">int</span>)</span>
+<span id="cb9-770"><a href="#cb9-770" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'xgf_rank'</span>]     <span class="op">=</span> df_2324[<span class="st">'xgf_pct'</span>].rank(ascending<span class="op">=</span><span class="va">False</span>).astype(<span class="bu">int</span>)</span>
+<span id="cb9-771"><a href="#cb9-771" aria-hidden="true" tabindex="-1"></a>    df_2324[<span class="st">'cf_xgf_delta'</span>] <span class="op">=</span> df_2324[<span class="st">'cf_rank'</span>] <span class="op">-</span> df_2324[<span class="st">'xgf_rank'</span>]</span>
+<span id="cb9-772"><a href="#cb9-772" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-773"><a href="#cb9-773" aria-hidden="true" tabindex="-1"></a>    top15 <span class="op">=</span> df_2324.head(<span class="dv">16</span>).copy()</span>
+<span id="cb9-774"><a href="#cb9-774" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-775"><a href="#cb9-775" aria-hidden="true" tabindex="-1"></a>    fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">7</span>))</span>
+<span id="cb9-776"><a href="#cb9-776" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-777"><a href="#cb9-777" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes[<span class="dv">0</span>]</span>
+<span id="cb9-778"><a href="#cb9-778" aria-hidden="true" tabindex="-1"></a>    sc <span class="op">=</span> ax.scatter(top15[<span class="st">'cf_pct'</span>], top15[<span class="st">'xgf_pct'</span>],</span>
+<span id="cb9-779"><a href="#cb9-779" aria-hidden="true" tabindex="-1"></a>                    s<span class="op">=</span>top15[<span class="st">'points'</span>] <span class="op">*</span> <span class="fl">1.5</span>, alpha<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb9-780"><a href="#cb9-780" aria-hidden="true" tabindex="-1"></a>                    c<span class="op">=</span>top15[<span class="st">'points'</span>], cmap<span class="op">=</span><span class="st">'YlOrRd'</span>)</span>
+<span id="cb9-781"><a href="#cb9-781" aria-hidden="true" tabindex="-1"></a>    plt.colorbar(sc, ax<span class="op">=</span>ax, label<span class="op">=</span><span class="st">'Points'</span>)</span>
+<span id="cb9-782"><a href="#cb9-782" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _, row <span class="kw">in</span> top15.iterrows():</span>
+<span id="cb9-783"><a href="#cb9-783" aria-hidden="true" tabindex="-1"></a>        ax.annotate(row[<span class="st">'team'</span>], (row[<span class="st">'cf_pct'</span>], row[<span class="st">'xgf_pct'</span>]),</span>
+<span id="cb9-784"><a href="#cb9-784" aria-hidden="true" tabindex="-1"></a>                    xytext<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">2</span>), textcoords<span class="op">=</span><span class="st">'offset points'</span>, fontsize<span class="op">=</span><span class="fl">7.5</span>,</span>
+<span id="cb9-785"><a href="#cb9-785" aria-hidden="true" tabindex="-1"></a>                    color<span class="op">=</span><span class="st">'#e6edf3'</span>)</span>
+<span id="cb9-786"><a href="#cb9-786" aria-hidden="true" tabindex="-1"></a>    ax.axhline(<span class="dv">50</span>, color<span class="op">=</span><span class="st">'#8b949e'</span>, ls<span class="op">=</span><span class="st">'--'</span>, lw<span class="op">=</span><span class="dv">1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb9-787"><a href="#cb9-787" aria-hidden="true" tabindex="-1"></a>    ax.axvline(<span class="dv">50</span>, color<span class="op">=</span><span class="st">'#8b949e'</span>, ls<span class="op">=</span><span class="st">'--'</span>, lw<span class="op">=</span><span class="dv">1</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb9-788"><a href="#cb9-788" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">'Corsi For % (5v5)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb9-789"><a href="#cb9-789" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">'xGF % (5v5)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb9-790"><a href="#cb9-790" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">'CF% vs xGF% — Top 16 Teams (2023-24)</span><span class="ch">\n</span><span class="st">Where they agree and where they diverge'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb9-791"><a href="#cb9-791" aria-hidden="true" tabindex="-1"></a>    ax.grid()</span>
+<span id="cb9-792"><a href="#cb9-792" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-793"><a href="#cb9-793" aria-hidden="true" tabindex="-1"></a>    ax2 <span class="op">=</span> axes[<span class="dv">1</span>]</span>
+<span id="cb9-794"><a href="#cb9-794" aria-hidden="true" tabindex="-1"></a>    rank_df <span class="op">=</span> top15[[<span class="st">'team'</span>,<span class="st">'pts_rank'</span>,<span class="st">'cf_rank'</span>,<span class="st">'xgf_rank'</span>]].copy()</span>
+<span id="cb9-795"><a href="#cb9-795" aria-hidden="true" tabindex="-1"></a>    rank_df.columns <span class="op">=</span> [<span class="st">'Team'</span>,<span class="st">'Points</span><span class="ch">\n</span><span class="st">Rank'</span>,<span class="st">'CF%</span><span class="ch">\n</span><span class="st">Rank'</span>,<span class="st">'xGF%</span><span class="ch">\n</span><span class="st">Rank'</span>]</span>
+<span id="cb9-796"><a href="#cb9-796" aria-hidden="true" tabindex="-1"></a>    rank_matrix <span class="op">=</span> rank_df.set_index(<span class="st">'Team'</span>).astype(<span class="bu">float</span>)</span>
+<span id="cb9-797"><a href="#cb9-797" aria-hidden="true" tabindex="-1"></a>    sns.heatmap(rank_matrix, ax<span class="op">=</span>ax2, cmap<span class="op">=</span><span class="st">'RdYlGn_r'</span>, annot<span class="op">=</span><span class="va">True</span>, fmt<span class="op">=</span><span class="st">'.0f'</span>,</span>
+<span id="cb9-798"><a href="#cb9-798" aria-hidden="true" tabindex="-1"></a>                linewidths<span class="op">=</span><span class="fl">0.5</span>, linecolor<span class="op">=</span><span class="st">'#0d1117'</span>,</span>
+<span id="cb9-799"><a href="#cb9-799" aria-hidden="true" tabindex="-1"></a>                cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Rank (lower=better)'</span>},</span>
+<span id="cb9-800"><a href="#cb9-800" aria-hidden="true" tabindex="-1"></a>                vmin<span class="op">=</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">32</span>)</span>
+<span id="cb9-801"><a href="#cb9-801" aria-hidden="true" tabindex="-1"></a>    ax2.set_title(<span class="st">'Rank Comparison: Three Metric Generations</span><span class="ch">\n</span><span class="st">2023-24 Top Teams'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb9-802"><a href="#cb9-802" aria-hidden="true" tabindex="-1"></a>    ax2.set_yticklabels(ax2.get_yticklabels(), fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb9-803"><a href="#cb9-803" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-804"><a href="#cb9-804" aria-hidden="true" tabindex="-1"></a>    plt.suptitle(<span class="st">'2023-24 NHL: Do All Three Generations Agree?'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, y<span class="op">=</span><span class="fl">1.01</span>,</span>
+<span id="cb9-805"><a href="#cb9-805" aria-hidden="true" tabindex="-1"></a>                 fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb9-806"><a href="#cb9-806" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb9-807"><a href="#cb9-807" aria-hidden="true" tabindex="-1"></a>    plt.savefig(<span class="st">'plots/11_cf_xgf_rank_comparison.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
+<span id="cb9-808"><a href="#cb9-808" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb9-809"><a href="#cb9-809" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-810"><a href="#cb9-810" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-811"><a href="#cb9-811" aria-hidden="true" tabindex="-1"></a>Boston and Carolina sit in the top-right quadrant — elite in both CF% and xGF%, meaning they dominate possession *and* shot quality. These are teams that analytics across all generations agree on.</span>
+<span id="cb9-812"><a href="#cb9-812" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-813"><a href="#cb9-813" aria-hidden="true" tabindex="-1"></a>The more interesting cases are the divergences. Teams ranked similarly in points but spread apart in Corsi vs xGF% are often being carried by a goalie with an unsustainably high save percentage (high PDO), or running a deliberate shot-blocking system that suppresses Corsi but not quality chances. Those are the situations where knowing which generation of metric to trust — and when — becomes the actual analytical skill.</span>
+<span id="cb9-814"><a href="#cb9-814" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-815"><a href="#cb9-815" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-816"><a href="#cb9-816" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-817"><a href="#cb9-817" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Full Picture: A Timeline of Innovation</span></span>
+<span id="cb9-818"><a href="#cb9-818" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-821"><a href="#cb9-821" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb9-822"><a href="#cb9-822" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-timeline</span></span>
+<span id="cb9-823"><a href="#cb9-823" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "The NHL analytics timeline from 2007 to 2025, organized by metric generation. Each wave of innovation was driven by a specific failure mode in the previous generation."</span></span>
+<span id="cb9-824"><a href="#cb9-824" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
+<span id="cb9-825"><a href="#cb9-825" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-826"><a href="#cb9-826" aria-hidden="true" tabindex="-1"></a>events <span class="op">=</span> [</span>
+<span id="cb9-827"><a href="#cb9-827" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2007</span>, <span class="st">'Jim Corsi begins tracking</span><span class="ch">\n</span><span class="st">all shot attempts in Buffalo'</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb9-828"><a href="#cb9-828" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2008</span>, <span class="st">'Vic Ferrari publishes</span><span class="ch">\n</span><span class="st">Corsi/Fenwick on behindthenet.ca'</span>, <span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-829"><a href="#cb9-829" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2010</span>, <span class="st">'Tyler Dellow: Corsi predicts</span><span class="ch">\n</span><span class="st">future team success (r=0.72)'</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb9-830"><a href="#cb9-830" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2012</span>, <span class="st">'War on Ice launches</span><span class="ch">\n</span><span class="st">(Macdonald &amp; Thomas)'</span>, <span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-831"><a href="#cb9-831" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2013</span>, <span class="st">'NaturalStatTrick debuts;</span><span class="ch">\n</span><span class="st">Corsi goes mainstream'</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb9-832"><a href="#cb9-832" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2014</span>, <span class="st">'Puck Analytics: first NHL</span><span class="ch">\n</span><span class="st">xG models published'</span>, <span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-833"><a href="#cb9-833" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2015</span>, <span class="st">'Moneypuck.com launches</span><span class="ch">\n</span><span class="st">(Peter Tanner xG model)'</span>, <span class="dv">2</span>, <span class="dv">1</span>),</span>
+<span id="cb9-834"><a href="#cb9-834" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2016</span>, <span class="st">'NHL Analytics Summit;</span><span class="ch">\n</span><span class="st">teams hiring full-time quants'</span>, <span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-835"><a href="#cb9-835" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2017</span>, <span class="st">'Evolving Hockey publishes</span><span class="ch">\n</span><span class="st">GAR/WAR framework'</span>, <span class="dv">3</span>, <span class="dv">1</span>),</span>
+<span id="cb9-836"><a href="#cb9-836" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2018</span>, <span class="st">'Sznajder All Three Zones</span><span class="ch">\n</span><span class="st">zone entry database complete'</span>, <span class="dv">4</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-837"><a href="#cb9-837" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2019</span>, <span class="st">'NHL–Sportradar puck</span><span class="ch">\n</span><span class="st">tracking pilot (select arenas)'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
+<span id="cb9-838"><a href="#cb9-838" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2020</span>, <span class="st">'COVID season: teams accelerate</span><span class="ch">\n</span><span class="st">analytics hiring'</span>, <span class="dv">3</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-839"><a href="#cb9-839" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2021</span>, <span class="st">'Sportlogiq powers</span><span class="ch">\n</span><span class="st">NHL Edge tracking rollout'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
+<span id="cb9-840"><a href="#cb9-840" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2022</span>, <span class="st">'NHL Edge IQ launches:</span><span class="ch">\n</span><span class="st">speed, distance, puck tracking'</span>, <span class="dv">4</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-841"><a href="#cb9-841" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2023</span>, <span class="st">'Transformer-based</span><span class="ch">\n</span><span class="st">sequence xG models appear'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
+<span id="cb9-842"><a href="#cb9-842" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2024</span>, <span class="st">'All 32 teams have</span><span class="ch">\n</span><span class="st">full analytics departments'</span>, <span class="dv">4</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb9-843"><a href="#cb9-843" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2025</span>, <span class="st">'AI-driven off-puck</span><span class="ch">\n</span><span class="st">valuation enters public research'</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
+<span id="cb9-844"><a href="#cb9-844" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb9-845"><a href="#cb9-845" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-846"><a href="#cb9-846" aria-hidden="true" tabindex="-1"></a>gen_colors_map <span class="op">=</span> {<span class="dv">1</span>: TEAL, <span class="dv">2</span>: GREEN, <span class="dv">3</span>: GOLD, <span class="dv">4</span>: ORANGE}</span>
+<span id="cb9-847"><a href="#cb9-847" aria-hidden="true" tabindex="-1"></a>gen_labels     <span class="op">=</span> {<span class="dv">1</span>: <span class="st">'Gen 1: Corsi/Fenwick'</span>, <span class="dv">2</span>: <span class="st">'Gen 2: xG / PDO'</span>,</span>
+<span id="cb9-848"><a href="#cb9-848" aria-hidden="true" tabindex="-1"></a>                  <span class="dv">3</span>: <span class="st">'Gen 3: WAR / RAPM'</span>,    <span class="dv">4</span>: <span class="st">'Gen 4: Tracking'</span>}</span>
+<span id="cb9-849"><a href="#cb9-849" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-850"><a href="#cb9-850" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">16</span>, <span class="dv">7</span>))</span>
+<span id="cb9-851"><a href="#cb9-851" aria-hidden="true" tabindex="-1"></a>ax.set_facecolor(<span class="st">'#0d1117'</span>)</span>
+<span id="cb9-852"><a href="#cb9-852" aria-hidden="true" tabindex="-1"></a>fig.patch.set_facecolor(<span class="st">'#0d1117'</span>)</span>
+<span id="cb9-853"><a href="#cb9-853" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'#30363d'</span>, lw<span class="op">=</span><span class="dv">2</span>, zorder<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-854"><a href="#cb9-854" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-855"><a href="#cb9-855" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> x0, x1, gen <span class="kw">in</span> [(<span class="dv">2007</span>,<span class="dv">2014</span>,<span class="dv">1</span>),(<span class="dv">2014</span>,<span class="dv">2018</span>,<span class="dv">2</span>),(<span class="dv">2018</span>,<span class="dv">2022</span>,<span class="dv">3</span>),(<span class="dv">2022</span>,<span class="dv">2026</span>,<span class="dv">4</span>)]:</span>
+<span id="cb9-856"><a href="#cb9-856" aria-hidden="true" tabindex="-1"></a>    ax.axvspan(x0, x1, alpha<span class="op">=</span><span class="fl">0.07</span>, color<span class="op">=</span>gen_colors_map[gen])</span>
+<span id="cb9-857"><a href="#cb9-857" aria-hidden="true" tabindex="-1"></a>    ax.text((x0<span class="op">+</span>x1)<span class="op">/</span><span class="dv">2</span>, <span class="op">-</span><span class="fl">2.8</span>, gen_labels[gen], ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="fl">8.5</span>,</span>
+<span id="cb9-858"><a href="#cb9-858" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>gen_colors_map[gen], fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb9-859"><a href="#cb9-859" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-860"><a href="#cb9-860" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> year, label, gen, offset <span class="kw">in</span> events:</span>
+<span id="cb9-861"><a href="#cb9-861" aria-hidden="true" tabindex="-1"></a>    col   <span class="op">=</span> gen_colors_map[gen]</span>
+<span id="cb9-862"><a href="#cb9-862" aria-hidden="true" tabindex="-1"></a>    y_end <span class="op">=</span> <span class="fl">1.5</span> <span class="op">*</span> offset</span>
+<span id="cb9-863"><a href="#cb9-863" aria-hidden="true" tabindex="-1"></a>    ax.plot([year, year], [<span class="dv">0</span>, y_end <span class="op">*</span> <span class="fl">0.85</span>], color<span class="op">=</span>col, lw<span class="op">=</span><span class="fl">1.2</span>, zorder<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb9-864"><a href="#cb9-864" aria-hidden="true" tabindex="-1"></a>    ax.scatter(year, <span class="dv">0</span>, color<span class="op">=</span>col, s<span class="op">=</span><span class="dv">60</span>, zorder<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb9-865"><a href="#cb9-865" aria-hidden="true" tabindex="-1"></a>    ax.text(year, y_end, label, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'bottom'</span> <span class="cf">if</span> offset <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'top'</span>,</span>
+<span id="cb9-866"><a href="#cb9-866" aria-hidden="true" tabindex="-1"></a>            fontsize<span class="op">=</span><span class="dv">7</span>, color<span class="op">=</span><span class="st">'#e6edf3'</span>,</span>
+<span id="cb9-867"><a href="#cb9-867" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">'round,pad=0.25'</span>, fc<span class="op">=</span><span class="st">'#161b22'</span>, ec<span class="op">=</span>col, alpha<span class="op">=</span><span class="fl">0.85</span>, lw<span class="op">=</span><span class="fl">0.8</span>))</span>
+<span id="cb9-868"><a href="#cb9-868" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-869"><a href="#cb9-869" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="fl">2006.2</span>, <span class="fl">2025.8</span>)</span>
+<span id="cb9-870"><a href="#cb9-870" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="op">-</span><span class="fl">3.5</span>, <span class="fl">3.5</span>)</span>
+<span id="cb9-871"><a href="#cb9-871" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="dv">2007</span>, <span class="dv">2026</span>))</span>
+<span id="cb9-872"><a href="#cb9-872" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels([<span class="bu">str</span>(y) <span class="cf">for</span> y <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2007</span>, <span class="dv">2026</span>)], rotation<span class="op">=</span><span class="dv">45</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb9-873"><a href="#cb9-873" aria-hidden="true" tabindex="-1"></a>ax.set_yticks([])</span>
+<span id="cb9-874"><a href="#cb9-874" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'NHL Analytics: A History of Innovation (2007–2025)'</span>,</span>
+<span id="cb9-875"><a href="#cb9-875" aria-hidden="true" tabindex="-1"></a>             fontsize<span class="op">=</span><span class="dv">14</span>, pad<span class="op">=</span><span class="dv">15</span>, color<span class="op">=</span><span class="st">'white'</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb9-876"><a href="#cb9-876" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-877"><a href="#cb9-877" aria-hidden="true" tabindex="-1"></a>patches_legend <span class="op">=</span> [mpatches.Patch(color<span class="op">=</span>v, label<span class="op">=</span>gen_labels[k]) <span class="cf">for</span> k, v <span class="kw">in</span> gen_colors_map.items()]</span>
+<span id="cb9-878"><a href="#cb9-878" aria-hidden="true" tabindex="-1"></a>ax.legend(handles<span class="op">=</span>patches_legend, fontsize<span class="op">=</span><span class="fl">8.5</span>, loc<span class="op">=</span><span class="st">'upper left'</span>,</span>
+<span id="cb9-879"><a href="#cb9-879" aria-hidden="true" tabindex="-1"></a>          facecolor<span class="op">=</span><span class="st">'#161b22'</span>, edgecolor<span class="op">=</span><span class="st">'#30363d'</span>)</span>
+<span id="cb9-880"><a href="#cb9-880" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-881"><a href="#cb9-881" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">'plots/10_analytics_timeline.png'</span>, dpi<span class="op">=</span><span class="dv">150</span>, bbox_inches<span class="op">=</span><span class="st">'tight'</span>, facecolor<span class="op">=</span><span class="st">'#0d1117'</span>)</span>
+<span id="cb9-882"><a href="#cb9-882" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb9-883"><a href="#cb9-883" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-884"><a href="#cb9-884" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-885"><a href="#cb9-885" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-886"><a href="#cb9-886" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-887"><a href="#cb9-887" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion: Why No Single Metric Is Ever Enough</span></span>
+<span id="cb9-888"><a href="#cb9-888" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-889"><a href="#cb9-889" aria-hidden="true" tabindex="-1"></a>The history of NHL analytics is not a story of one metric replacing another. It's a story of **layering** — each generation answering a question the previous one couldn't ask.</span>
+<span id="cb9-890"><a href="#cb9-890" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-891"><a href="#cb9-891" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> The problem <span class="pp">|</span> The solution <span class="pp">|</span></span>
+<span id="cb9-892"><a href="#cb9-892" aria-hidden="true" tabindex="-1"></a><span class="pp">|-------------|-------------|</span></span>
+<span id="cb9-893"><a href="#cb9-893" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> +/− is too noisy <span class="pp">|</span> → Corsi: higher sample rate, real signal <span class="pp">|</span></span>
+<span id="cb9-894"><a href="#cb9-894" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Corsi ignores shot quality <span class="pp">|</span> → xG: probability-weighted shots <span class="pp">|</span></span>
+<span id="cb9-895"><a href="#cb9-895" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> xG can't isolate individual skill <span class="pp">|</span> → WAR/RAPM: regression-based context adjustment <span class="pp">|</span></span>
+<span id="cb9-896"><a href="#cb9-896" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> WAR can't see off-puck play <span class="pp">|</span> → Tracking: full player and puck data <span class="pp">|</span></span>
+<span id="cb9-897"><a href="#cb9-897" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-898"><a href="#cb9-898" aria-hidden="true" tabindex="-1"></a>The modern analyst doesn't choose between these generations. They read all four simultaneously, the way a doctor synthesizes blood work, imaging, and clinical observation before making a diagnosis. Each layer confirms, challenges, or contextualizes the others.</span>
+<span id="cb9-899"><a href="#cb9-899" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-900"><a href="#cb9-900" aria-hidden="true" tabindex="-1"></a>Corsi isn't enough. But it was the insight that started everything — and understanding *why* it isn't enough is what makes every metric that came after it meaningful.</span>
+<span id="cb9-901"><a href="#cb9-901" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-902"><a href="#cb9-902" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-903"><a href="#cb9-903" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-904"><a href="#cb9-904" aria-hidden="true" tabindex="-1"></a><span class="fu">## Further Reading</span></span>
+<span id="cb9-905"><a href="#cb9-905" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-906"><a href="#cb9-906" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Natural Stat Trick](https://www.naturalstattrick.com)** — CF%, xGF%, GSAx for every team and player</span>
+<span id="cb9-907"><a href="#cb9-907" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Evolving Hockey](https://www.evolving-hockey.com)** — WAR/GAR models, RAPM, contract tools</span>
+<span id="cb9-908"><a href="#cb9-908" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[MoneyPuck](https://moneypuck.com)** — xG models, team and player dashboards</span>
+<span id="cb9-909"><a href="#cb9-909" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Hockey Graphs](https://hockey-graphs.com)** — Long-form analytics writing</span>
+<span id="cb9-910"><a href="#cb9-910" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[All Three Zones (Corey Sznajder)](https://twitter.com/ShutdownLine)** — Zone entry/exit tracking</span>
+<span id="cb9-911"><a href="#cb9-911" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[NHL Edge](https://www.nhl.com/stats)** — Official tracking-era stats</span>
+<span id="cb9-912"><a href="#cb9-912" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Arsenault, M. &amp; Desjardins, G. (2019) — *Wins Above Replacement in the NHL* — Evolving Hockey</span>
+<span id="cb9-913"><a href="#cb9-913" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Tulsky, E. et al. — *[Zone Entry and Exit Research](https://hockey-graphs.com/2014/03/20/zone-exits-and-entries-the-effects-of-puck-possession-in-the-neutral-zone/)* — Hockey Graphs, 2014</span>
+<span id="cb9-914"><a href="#cb9-914" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-915"><a href="#cb9-915" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-916"><a href="#cb9-916" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-917"><a href="#cb9-917" aria-hidden="true" tabindex="-1"></a>*Data sourced from the NHL public API and curated public records. All analysis reproducible via the companion notebook.*</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

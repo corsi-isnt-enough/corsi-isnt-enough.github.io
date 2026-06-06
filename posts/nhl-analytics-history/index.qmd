@@ -446,12 +446,12 @@ Where $d$ is distance from goal in feet and $\theta$ is shot angle from centre. 
 #| fig-cap: "Left: xG probability by shot location. The slot — roughly the area from the crease to the top of the circles — is where games are won and lost. Right: xG by shot scenario, illustrating the enormous range from a blue-line slap shot (2–3%) to a crease deflection (30%+)."
 
 def xg_model(distance_ft, angle_deg, is_rebound=False, shot_type='wrist'):
-    b0      = 2.5
+    b0      = -0.5          # corrected intercept
     b_dist  = -0.055
     b_angle = -0.018
-    b_reb   = 1.2
+    b_reb   = 0.8           # reduced rebound bonus
     b_type  = {'wrist': 0.0, 'snap': 0.15, 'backhand': -0.3,
-               'slap': -0.1, 'tip': 0.7, 'deflection': 0.9}.get(shot_type, 0)
+               'slap': -0.25, 'tip': 0.5, 'deflection': 0.7}.get(shot_type, 0)
     logit = b0 + b_dist*distance_ft + b_angle*angle_deg + b_reb*is_rebound + b_type
     return 1 / (1 + np.exp(-logit))
 
@@ -505,7 +505,8 @@ for bar, val in zip(bars2, xg_vals):
 ax2.set_xlabel('Expected Goal probability (%)')
 ax2.set_title('xG by Shot Scenario\nWhy "1 Corsi" is not "1 Corsi"', fontsize=11)
 ax2.grid(axis='x')
-ax2.set_xlim(0, 45)
+ax2.set_xlim(0, 55)   # wider x-axis to fit labels
+plt.subplots_adjust(right=0.88)  # pull right edge in so labels aren't clipped
 
 plt.suptitle('Generation 2: Expected Goals (xG) Model', fontsize=13, y=1.01, fontweight='bold')
 plt.tight_layout()
