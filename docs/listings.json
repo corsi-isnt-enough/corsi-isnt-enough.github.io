@@ -2,6 +2,7 @@
   {
     "listing": "/posts/index.html",
     "items": [
+      "/posts/nhl-analytics-history/index.html",
       "/posts/sequence-metrics/index.html",
       "/posts/str-framework/index.html"
     ]
