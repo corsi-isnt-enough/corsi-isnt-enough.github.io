@@ -430,7 +430,7 @@ The fundamental flaw in Corsi is that it treats all shot attempts as equal. A sc
 The basic formulation is a logistic regression:
 
 $$
-xG = P(\text{goal} \mid \text{shot location, shot type, game situation, \ldots})
+xG = P\!\left(\text{goal} \;\middle|\; \text{shot location, shot type, game situation, \ldots}\right)
 $$
 
 In log-odds form:
