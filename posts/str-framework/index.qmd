@@ -1,6 +1,7 @@
 ---
 title: "Special Teams Rating: A Better Framework"
 date: 2025-06-04
+author: "Buddy Galletti"
 categories: [special-teams, methodology, power-play, penalty-kill]
 description: "PP% and PK% are the most widely cited special teams metrics in hockey. They are also among the most misleading. Here's a ground-up replacement."
 toc: true

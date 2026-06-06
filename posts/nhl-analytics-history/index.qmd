@@ -1,7 +1,7 @@
 ---
 title: "A Brief History of NHL Analytics (2007–Present)"
 date: "2026-06-06"
-author: "Corsi Isn't Enough"
+author: "Buddy Galletti"
 categories: [analytics, history, corsi, xG, WAR, tracking, methodology]
 description: "From Jim Corsi's shot-tracking clipboard to AI-powered player tracking — the full arc of NHL analytics across four generations of metrics, with real data and the math behind each leap forward."
 image: plots/10_analytics_timeline.png

@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Buddy Galletti">
 <meta name="dcterms.date" content="2025-06-04">
 <meta name="description" content="What if we stopped measuring what teams accumulate and started measuring how they behave? A sequence-based framework for NHL team consistency across 14 seasons.">
 
@@ -241,6 +242,12 @@ window.Quarto = {
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Buddy Galletti </p>
+          </div>
+  </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
@@ -1081,505 +1088,506 @@ z = \frac{\text{descents} - E[\text{descents}]}{\sigma_{\text{descents}}}
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Descents, Consistency, and Post-Descent Stickiness"</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-06-04</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [consistency, sequence-analysis, methodology]</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "What if we stopped measuring what teams accumulate and started measuring how they behave? A sequence-based framework for NHL team consistency across 14 seasons."</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> true</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> true</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">  enabled: false</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## A Different Question</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>Most NHL analytics starts with aggregation. How many goals did a team score?</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>How many shots did they suppress? What was their expected goals percentage?</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>These are useful questions, but they all share the same structure: sum up the</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>season, divide by something, rank the teams.</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>This project starts from a different place. Instead of asking *how much*, it</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>asks *how*.</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>Specifically: **how does a team's performance sequence across 82 games tell us</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>something that the final standings don't?**</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>Two teams can finish with 100 points and look completely different in terms of</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>how they got there. One might reel off wins in long streaks, lose in clusters,</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>and snap back. Another might grind out wins and losses in near-random alternation.</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>Both are 100-point teams. But they are not the same team, and their paths to the</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>playoffs — and through them — will look nothing alike.</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>The framework here introduces three metrics built to capture this: **Descents**,</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>**Consistency Rating (CR)**, and **Post-Descent Stickiness (PDS)**.</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Data Model</span></span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>Every NHL game produces exactly one of three standings outcomes for a given team:</span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>\text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> \in <span class="sc">\{</span>0, 1, 2<span class="sc">\}</span></span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>Where:</span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$2$ = Win (2 points)</span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$1$ = OT/SO Loss (1 point)</span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$0$ = Regulation Loss (0 points)</span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>A full season is a length-82 sequence of these values. The entire analysis</span>
-<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>operates on these sequences, fetched from the NHL public API's club schedule</span>
-<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>endpoint:</span>
-<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a><span class="in">GET https://api-web.nhle.com/v1/club-schedule-season/{abbrev}/{season}</span></span>
-<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>The dataset covers **14 full 82-game seasons** from 2010-11 through 2024-25,</span>
-<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>plus the in-progress 2025-26 season. The 2012-13 lockout season (48 games) and</span>
-<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>the 2019-20 COVID season (shortened, bubble format) are excluded from the pooled</span>
-<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>baseline but flagged where they appear.</span>
-<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a><span class="fu">## Descents</span></span>
-<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>A **descent** is any position $i$ where the team's outcome is strictly worse</span>
-<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>than the previous game:</span>
-<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>\text{DESCENTS}(\text{seq}) = \sum_{i=1}^{81} \mathbf{1}<span class="co">[</span><span class="ot">\text{seq}[i] &lt; \text{seq}[i-1]</span><span class="co">]</span></span>
-<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>This is a simple count of backward steps in the sequence. A team that wins 10</span>
-<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>in a row and then loses has one descent. A team that alternates win-loss-win-loss</span>
-<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>has roughly 40 descents. The same total point accumulation can produce wildly</span>
-<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>different descent counts depending on how results are distributed across the</span>
-<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>season.</span>
-<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Theoretical Baseline</span></span>
-<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>For any two adjacent positions in the sequence drawn from $<span class="sc">\{</span>0, 1, 2<span class="sc">\}</span>$, the</span>
-<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>probability of a descent depends on the empirical distribution of outcomes.</span>
-<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>Letting $p_0$, $p_1$, $p_2$ be the probabilities of each outcome:</span>
-<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>P(\text{descent}) = p_0 p_1 + p_0 p_2 + p_1 p_2</span>
-<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>Under a uniform distribution ($p_0 = p_1 = p_2 = \frac{1}{3}$):</span>
-<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>P(\text{descent}) = \frac{1}{3}, \quad E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span> = 81 \times \frac{1}{3} = 27.0</span>
-<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>The empirical 2024-25 distribution is not uniform. Wins are the most common outcome</span>
-<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>($p_2 = 0.503$), regulation losses are next ($p_0 = 0.383$), and OT/SO losses</span>
-<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>are the least common ($p_1 = 0.114$). Plugging those values in:</span>
-<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>P(\text{descent}) = 0.2937, \quad E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span> = 23.79, \quad \sigma = 4.10</span>
-<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>This is meaningfully different from the naive uniform assumption of 27.0. Using</span>
-<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>the empirical baseline is essential — a team with 24 descents looks below average</span>
-<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>against the uniform baseline but is exactly at the mean under the empirical one.</span>
-<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>All z-scores in this analysis use the pooled empirical baseline across 14 seasons.</span>
-<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a><span class="fu">### Z-Score and Consistency Rating</span></span>
-<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>For each team-season, we compute:</span>
-<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>z = \frac{\text{descents} - E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span>}{\sigma_{\text{descents}}}</span>
-<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>Where $E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span>$ and $\sigma$ come from the pooled 14-season baseline.</span>
-<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>**Negative z-scores mean fewer descents than expected — more consistent.**</span>
-<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>Positive z-scores mean more volatility.</span>
-<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a>The **Consistency Rating (CR)** rescales this within each season to a 0–100</span>
-<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>scale for readability:</span>
-<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>\text{CR} = 100 \times \left(1 - \frac{z - z_{\min}}{z_{\max} - z_{\min}}\right)</span>
-<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a>A CR of 100 is the most consistent team in the league that season. A CR of 0</span>
-<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a>is the most volatile. The inversion ensures that higher = more consistent.</span>
-<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a><span class="fu">## Post-Descent Stickiness</span></span>
-<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>Descents and CR describe the *frequency* of backward steps. Post-Descent</span>
-<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a>Stickiness (PDS) describes what happens *after* a descent, and this is where</span>
-<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>the real conjecture lives.</span>
-<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a>**PDS at level $k$** is defined as: after descending to outcome $k$, what is</span>
-<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>the probability that the next game also produces outcome $k$?</span>
-<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>\text{PDS}_k = P\bigl(\text{seq}<span class="co">[</span><span class="ot">i+1</span><span class="co">]</span> = k \;\big|\; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> = k,\; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> &lt; \text{seq}<span class="co">[</span><span class="ot">i-1</span><span class="co">]</span>\bigr)</span>
-<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>In plain terms: given that a team just had a bad result and it was worse than</span>
-<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>the game before, how likely are they to have the same bad result again?</span>
-<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a>We focus on two variants:</span>
-<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**PDS₀**: After descending to a regulation loss, probability the next game</span>
-<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a>  is also a regulation loss</span>
-<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**PDS₁**: After descending to an OTL, probability the next game is also</span>
-<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a>  an OTL</span>
-<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a>We also track the complementary metric, **Descent Recovery Rate (DRR)**:</span>
-<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a>\text{DRR} = P\bigl(\text{seq}<span class="co">[</span><span class="ot">i+1</span><span class="co">]</span> &gt; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> \;\big|\; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> &lt; \text{seq}<span class="co">[</span><span class="ot">i-1</span><span class="co">]</span>\bigr)</span>
-<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a>The fraction of the time a team genuinely bounces back after any descent.</span>
-<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Conjecture</span></span>
-<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a>The central hypothesis of this work:</span>
-<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **High-consistency, high-points teams have higher PDS₀.** After descending</span></span>
-<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; to a regulation loss, they tend to stay there briefly before snapping back</span></span>
-<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; into a win streak. This clustering of losses is precisely the mechanism behind</span></span>
-<span id="cb4-172"><a href="#cb4-172" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; their apparent consistency — they have few descents because their losses are</span></span>
-<span id="cb4-173"><a href="#cb4-173" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; grouped together, not scattered randomly across the season.</span></span>
-<span id="cb4-174"><a href="#cb4-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-175"><a href="#cb4-175" aria-hidden="true" tabindex="-1"></a>This is counterintuitive. It says that elite, consistent teams are *more likely*</span>
-<span id="cb4-176"><a href="#cb4-176" aria-hidden="true" tabindex="-1"></a>to follow a loss with another loss than average teams — not because they are</span>
-<span id="cb4-177"><a href="#cb4-177" aria-hidden="true" tabindex="-1"></a>worse, but because their loss events are structured differently. Volatility, by</span>
-<span id="cb4-178"><a href="#cb4-178" aria-hidden="true" tabindex="-1"></a>contrast, means losses are scattered: every win is followed by a loss, every</span>
-<span id="cb4-179"><a href="#cb4-179" aria-hidden="true" tabindex="-1"></a>loss by a win, producing many descents but no clustering.</span>
-<span id="cb4-180"><a href="#cb4-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-181"><a href="#cb4-181" aria-hidden="true" tabindex="-1"></a>To test this formally, we compute Pearson correlations between PDS₀ and both</span>
-<span id="cb4-182"><a href="#cb4-182" aria-hidden="true" tabindex="-1"></a>CR and total standings points, across all valid team-seasons in the dataset</span>
-<span id="cb4-183"><a href="#cb4-183" aria-hidden="true" tabindex="-1"></a>(full 82-game seasons only, COVID season excluded).</span>
-<span id="cb4-184"><a href="#cb4-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-185"><a href="#cb4-185" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-186"><a href="#cb4-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-187"><a href="#cb4-187" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Data Pipeline</span></span>
-<span id="cb4-188"><a href="#cb4-188" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-191"><a href="#cb4-191" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb4-192"><a href="#cb4-192" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb4-193"><a href="#cb4-193" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb4-194"><a href="#cb4-194" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb4-195"><a href="#cb4-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-196"><a href="#cb4-196" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
-<span id="cb4-197"><a href="#cb4-197" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb4-198"><a href="#cb4-198" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb4-199"><a href="#cb4-199" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb4-200"><a href="#cb4-200" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.patches <span class="im">as</span> mpatches</span>
-<span id="cb4-201"><a href="#cb4-201" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
-<span id="cb4-202"><a href="#cb4-202" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
-<span id="cb4-203"><a href="#cb4-203" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb4-204"><a href="#cb4-204" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
-<span id="cb4-205"><a href="#cb4-205" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-206"><a href="#cb4-206" aria-hidden="true" tabindex="-1"></a>BASE_URL    <span class="op">=</span> <span class="st">'https://api-web.nhle.com/v1'</span></span>
-<span id="cb4-207"><a href="#cb4-207" aria-hidden="true" tabindex="-1"></a>SEASON_2425 <span class="op">=</span> <span class="st">'20242025'</span></span>
-<span id="cb4-208"><a href="#cb4-208" aria-hidden="true" tabindex="-1"></a>SEASON_2526 <span class="op">=</span> <span class="st">'20252026'</span></span>
-<span id="cb4-209"><a href="#cb4-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-210"><a href="#cb4-210" aria-hidden="true" tabindex="-1"></a>HISTORICAL_SEASONS <span class="op">=</span> [</span>
-<span id="cb4-211"><a href="#cb4-211" aria-hidden="true" tabindex="-1"></a>    <span class="st">'20102011'</span>,<span class="st">'20112012'</span>,<span class="st">'20132014'</span>,<span class="st">'20142015'</span>,<span class="st">'20152016'</span>,</span>
-<span id="cb4-212"><a href="#cb4-212" aria-hidden="true" tabindex="-1"></a>    <span class="st">'20162017'</span>,<span class="st">'20172018'</span>,<span class="st">'20182019'</span>,<span class="st">'20192020'</span>,<span class="st">'20202021'</span>,</span>
-<span id="cb4-213"><a href="#cb4-213" aria-hidden="true" tabindex="-1"></a>    <span class="st">'20212022'</span>,<span class="st">'20222023'</span>,<span class="st">'20232024'</span>,<span class="st">'20242025'</span></span>
-<span id="cb4-214"><a href="#cb4-214" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb4-215"><a href="#cb4-215" aria-hidden="true" tabindex="-1"></a>COVID_SEASON <span class="op">=</span> <span class="st">'20192020'</span></span>
-<span id="cb4-216"><a href="#cb4-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-217"><a href="#cb4-217" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Setup complete."</span>)</span>
-<span id="cb4-218"><a href="#cb4-218" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Historical seasons: </span><span class="sc">{</span><span class="bu">len</span>(HISTORICAL_SEASONS)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb4-219"><a href="#cb4-219" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-220"><a href="#cb4-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-223"><a href="#cb4-223" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb4-224"><a href="#cb4-224" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb4-225"><a href="#cb4-225" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb4-226"><a href="#cb4-226" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: core-functions</span></span>
-<span id="cb4-227"><a href="#cb4-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-228"><a href="#cb4-228" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> count_descents(seq):</span>
-<span id="cb4-229"><a href="#cb4-229" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq)) <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>])</span>
-<span id="cb4-230"><a href="#cb4-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-231"><a href="#cb4-231" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> post_descent_stickiness(seq, landed_on<span class="op">=</span><span class="dv">0</span>):</span>
-<span id="cb4-232"><a href="#cb4-232" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(seq) <span class="op">&lt;</span> <span class="dv">3</span>:</span>
-<span id="cb4-233"><a href="#cb4-233" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
-<span id="cb4-234"><a href="#cb4-234" aria-hidden="true" tabindex="-1"></a>    eligible <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">-</span> <span class="dv">1</span>)</span>
-<span id="cb4-235"><a href="#cb4-235" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>] <span class="kw">and</span> seq[i] <span class="op">==</span> landed_on]</span>
-<span id="cb4-236"><a href="#cb4-236" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> eligible:</span>
-<span id="cb4-237"><a href="#cb4-237" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
-<span id="cb4-238"><a href="#cb4-238" aria-hidden="true" tabindex="-1"></a>    sticky <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> eligible <span class="cf">if</span> seq[i<span class="op">+</span><span class="dv">1</span>] <span class="op">==</span> landed_on)</span>
-<span id="cb4-239"><a href="#cb4-239" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> sticky <span class="op">/</span> <span class="bu">len</span>(eligible)</span>
-<span id="cb4-240"><a href="#cb4-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-241"><a href="#cb4-241" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> descent_recovery_rate(seq):</span>
-<span id="cb4-242"><a href="#cb4-242" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(seq) <span class="op">&lt;</span> <span class="dv">3</span>:</span>
-<span id="cb4-243"><a href="#cb4-243" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
-<span id="cb4-244"><a href="#cb4-244" aria-hidden="true" tabindex="-1"></a>    eligible <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">-</span> <span class="dv">1</span>) <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>]]</span>
-<span id="cb4-245"><a href="#cb4-245" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> eligible:</span>
-<span id="cb4-246"><a href="#cb4-246" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
-<span id="cb4-247"><a href="#cb4-247" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> eligible <span class="cf">if</span> seq[i<span class="op">+</span><span class="dv">1</span>] <span class="op">&gt;</span> seq[i]) <span class="op">/</span> <span class="bu">len</span>(eligible)</span>
-<span id="cb4-248"><a href="#cb4-248" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-249"><a href="#cb4-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-250"><a href="#cb4-250" aria-hidden="true" tabindex="-1"></a>The three core functions are deceptively simple. <span class="in">`count_descents`</span> is a single</span>
-<span id="cb4-251"><a href="#cb4-251" aria-hidden="true" tabindex="-1"></a>pass. <span class="in">`post_descent_stickiness`</span> finds every eligible position and checks what</span>
-<span id="cb4-252"><a href="#cb4-252" aria-hidden="true" tabindex="-1"></a>came next. <span class="in">`descent_recovery_rate`</span> is the complement: genuine bouncebacks after</span>
-<span id="cb4-253"><a href="#cb4-253" aria-hidden="true" tabindex="-1"></a>any descent.</span>
-<span id="cb4-254"><a href="#cb4-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-255"><a href="#cb4-255" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-256"><a href="#cb4-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-257"><a href="#cb4-257" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results: The 2024-25 Consistency Rankings</span></span>
-<span id="cb4-258"><a href="#cb4-258" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-259"><a href="#cb4-259" aria-hidden="true" tabindex="-1"></a>The chart below shows every NHL team's descent count for the 2024-25 season,</span>
-<span id="cb4-260"><a href="#cb4-260" aria-hidden="true" tabindex="-1"></a>sorted from fewest descents (most consistent) on the left to most on the right.</span>
-<span id="cb4-261"><a href="#cb4-261" aria-hidden="true" tabindex="-1"></a>The yellow horizontal line marks the empirical expected value of 23.8 descents.</span>
-<span id="cb4-262"><a href="#cb4-262" aria-hidden="true" tabindex="-1"></a>The shaded bands show one and two standard deviations from that baseline.</span>
-<span id="cb4-263"><a href="#cb4-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-264"><a href="#cb4-264" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2024-25: Descent Count vs League-Expected](nhl_descents_2425.png)</span>{fig-alt="Bar chart showing descent count for all 32 NHL teams in 2024-25, sorted from most to least consistent, with expected value line"}</span>
-<span id="cb4-265"><a href="#cb4-265" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-266"><a href="#cb4-266" aria-hidden="true" tabindex="-1"></a>Toronto leads the league with just 18 descents, a z-score of -1.41 — the most</span>
-<span id="cb4-267"><a href="#cb4-267" aria-hidden="true" tabindex="-1"></a>consistent team in the league that season. Winnipeg (19 descents, z = -1.17) and</span>
-<span id="cb4-268"><a href="#cb4-268" aria-hidden="true" tabindex="-1"></a>Dallas (20 descents, z = -0.92) round out the top three. At the other end,</span>
-<span id="cb4-269"><a href="#cb4-269" aria-hidden="true" tabindex="-1"></a>Vancouver and Anaheim both recorded 30 descents (z = +1.52), making them the</span>
-<span id="cb4-270"><a href="#cb4-270" aria-hidden="true" tabindex="-1"></a>most volatile teams in the league.</span>
-<span id="cb4-271"><a href="#cb4-271" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-272"><a href="#cb4-272" aria-hidden="true" tabindex="-1"></a>The full 2024-25 standings:</span>
-<span id="cb4-273"><a href="#cb4-273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-274"><a href="#cb4-274" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Team <span class="pp">|</span> Points <span class="pp">|</span> Descents <span class="pp">|</span> Z-Score <span class="pp">|</span> CR <span class="pp">|</span> Playoff <span class="pp">|</span></span>
-<span id="cb4-275"><a href="#cb4-275" aria-hidden="true" tabindex="-1"></a><span class="pp">|------|--------|----------|---------|-----|---------|</span></span>
-<span id="cb4-276"><a href="#cb4-276" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Toronto Maple Leafs <span class="pp">|</span> 108 <span class="pp">|</span> 18 <span class="pp">|</span> -1.41 <span class="pp">|</span> 100.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
-<span id="cb4-277"><a href="#cb4-277" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Winnipeg Jets <span class="pp">|</span> 116 <span class="pp">|</span> 19 <span class="pp">|</span> -1.17 <span class="pp">|</span> 91.7 <span class="pp">|</span> Yes (PT) <span class="pp">|</span></span>
-<span id="cb4-278"><a href="#cb4-278" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nashville Predators <span class="pp">|</span> 68 <span class="pp">|</span> 20 <span class="pp">|</span> -0.92 <span class="pp">|</span> 83.3 <span class="pp">|</span> No <span class="pp">|</span></span>
-<span id="cb4-279"><a href="#cb4-279" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Dallas Stars <span class="pp">|</span> 106 <span class="pp">|</span> 20 <span class="pp">|</span> -0.92 <span class="pp">|</span> 83.3 <span class="pp">|</span> Yes <span class="pp">|</span></span>
-<span id="cb4-280"><a href="#cb4-280" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Detroit Red Wings <span class="pp">|</span> 86 <span class="pp">|</span> 20 <span class="pp">|</span> -0.92 <span class="pp">|</span> 83.3 <span class="pp">|</span> No <span class="pp">|</span></span>
-<span id="cb4-281"><a href="#cb4-281" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Vegas Golden Knights <span class="pp">|</span> 110 <span class="pp">|</span> 21 <span class="pp">|</span> -0.68 <span class="pp">|</span> 75.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
-<span id="cb4-282"><a href="#cb4-282" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Edmonton Oilers <span class="pp">|</span> 101 <span class="pp">|</span> 21 <span class="pp">|</span> -0.68 <span class="pp">|</span> 75.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
-<span id="cb4-283"><a href="#cb4-283" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Tampa Bay Lightning <span class="pp">|</span> 102 <span class="pp">|</span> 21 <span class="pp">|</span> -0.68 <span class="pp">|</span> 75.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
-<span id="cb4-284"><a href="#cb4-284" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ottawa Senators <span class="pp">|</span> 97 <span class="pp">|</span> 22 <span class="pp">|</span> -0.44 <span class="pp">|</span> 66.7 <span class="pp">|</span> Yes <span class="pp">|</span></span>
-<span id="cb4-285"><a href="#cb4-285" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Buffalo Sabres <span class="pp">|</span> 79 <span class="pp">|</span> 22 <span class="pp">|</span> -0.44 <span class="pp">|</span> 66.7 <span class="pp">|</span> No <span class="pp">|</span></span>
-<span id="cb4-286"><a href="#cb4-286" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-287"><a href="#cb4-287" aria-hidden="true" tabindex="-1"></a>A few things stand out immediately. Nashville finished with just 68 points but</span>
-<span id="cb4-288"><a href="#cb4-288" aria-hidden="true" tabindex="-1"></a>ranks third in consistency — they lost a lot, but they lost in clusters rather</span>
-<span id="cb4-289"><a href="#cb4-289" aria-hidden="true" tabindex="-1"></a>than alternating wins and losses randomly. Detroit shows a similar pattern: 86</span>
-<span id="cb4-290"><a href="#cb4-290" aria-hidden="true" tabindex="-1"></a>points and a CR of 83, suggesting a team that was more structured in how it</span>
-<span id="cb4-291"><a href="#cb4-291" aria-hidden="true" tabindex="-1"></a>played through adversity than their standings position implies.</span>
-<span id="cb4-292"><a href="#cb4-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-293"><a href="#cb4-293" aria-hidden="true" tabindex="-1"></a>Toronto is the most interesting case. With 108 points and a CR of 100, they are</span>
-<span id="cb4-294"><a href="#cb4-294" aria-hidden="true" tabindex="-1"></a>the rare team that is both elite and maximally consistent. Most high-point teams</span>
-<span id="cb4-295"><a href="#cb4-295" aria-hidden="true" tabindex="-1"></a>show moderate to high consistency, but Toronto's 18 descents is genuinely</span>
-<span id="cb4-296"><a href="#cb4-296" aria-hidden="true" tabindex="-1"></a>exceptional.</span>
-<span id="cb4-297"><a href="#cb4-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-298"><a href="#cb4-298" aria-hidden="true" tabindex="-1"></a>The scatter plot below shows the full relationship between points and CR across</span>
-<span id="cb4-299"><a href="#cb4-299" aria-hidden="true" tabindex="-1"></a>all 32 teams in 2024-25.</span>
-<span id="cb4-300"><a href="#cb4-300" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-301"><a href="#cb4-301" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2024-25: Points vs Consistency Rating](nhl_scatter_2425.png)</span>{fig-alt="Scatter plot of season standings points vs consistency rating for all 32 NHL teams in 2024-25, colored by conference"}</span>
-<span id="cb4-302"><a href="#cb4-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-303"><a href="#cb4-303" aria-hidden="true" tabindex="-1"></a>The chart plots points on the x-axis and CR on the y-axis. Large circles are</span>
-<span id="cb4-304"><a href="#cb4-304" aria-hidden="true" tabindex="-1"></a>playoff teams, small squares are non-playoff. The dashed lines sit at the median</span>
-<span id="cb4-305"><a href="#cb4-305" aria-hidden="true" tabindex="-1"></a>for each axis, dividing the chart into four quadrants.</span>
-<span id="cb4-306"><a href="#cb4-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-307"><a href="#cb4-307" aria-hidden="true" tabindex="-1"></a>The upper-right quadrant — high points, high consistency — contains most of the</span>
-<span id="cb4-308"><a href="#cb4-308" aria-hidden="true" tabindex="-1"></a>elite teams: Toronto, Winnipeg, Dallas, Vegas, Tampa Bay, Edmonton, and Ottawa</span>
-<span id="cb4-309"><a href="#cb4-309" aria-hidden="true" tabindex="-1"></a>all sit there. This confirms that the best teams tend to be more consistent, but</span>
-<span id="cb4-310"><a href="#cb4-310" aria-hidden="true" tabindex="-1"></a>the relationship is not tight. Washington (111 points, CR 58) and Vancouver</span>
-<span id="cb4-311"><a href="#cb4-311" aria-hidden="true" tabindex="-1"></a>(90 points, CR 0) both sit in the high-points/volatile half, showing that</span>
-<span id="cb4-312"><a href="#cb4-312" aria-hidden="true" tabindex="-1"></a>sustained winning is possible through volatile paths too.</span>
-<span id="cb4-313"><a href="#cb4-313" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-314"><a href="#cb4-314" aria-hidden="true" tabindex="-1"></a>The upper-left quadrant contains the most analytically interesting teams:</span>
-<span id="cb4-315"><a href="#cb4-315" aria-hidden="true" tabindex="-1"></a>Nashville (68 points, CR 83) and Detroit (86 points, CR 83). These are teams</span>
-<span id="cb4-316"><a href="#cb4-316" aria-hidden="true" tabindex="-1"></a>that were far more consistent in their game-to-game behavior than their final</span>
-<span id="cb4-317"><a href="#cb4-317" aria-hidden="true" tabindex="-1"></a>standings suggest. They lost, but they lost in a structured way.</span>
-<span id="cb4-318"><a href="#cb4-318" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-319"><a href="#cb4-319" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-320"><a href="#cb4-320" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-321"><a href="#cb4-321" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results: The 2025-26 Season (In Progress)</span></span>
-<span id="cb4-322"><a href="#cb4-322" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-323"><a href="#cb4-323" aria-hidden="true" tabindex="-1"></a>The same framework applied to the in-progress 2025-26 season shows a different</span>
-<span id="cb4-324"><a href="#cb4-324" aria-hidden="true" tabindex="-1"></a>landscape. Colorado leads the Presidents' Trophy race with 121 points and a CR</span>
-<span id="cb4-325"><a href="#cb4-325" aria-hidden="true" tabindex="-1"></a>of 73. Tampa Bay leads the consistency rankings with 18 descents (CR 100),</span>
-<span id="cb4-326"><a href="#cb4-326" aria-hidden="true" tabindex="-1"></a>followed by Buffalo (19 descents, CR 91) and Dallas (20 descents, CR 82).</span>
-<span id="cb4-327"><a href="#cb4-327" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-328"><a href="#cb4-328" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2025-26: Descent Count vs League-Expected](nhl_descents_2526.png)</span>{fig-alt="Bar chart showing descent count for all 32 NHL teams in 2025-26 season in progress"}</span>
-<span id="cb4-329"><a href="#cb4-329" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-330"><a href="#cb4-330" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2025-26: Points vs Consistency Rating](nhl_scatter_2526.png)</span>{fig-alt="Scatter plot of season standings points vs consistency rating for all 32 NHL teams in 2025-26 in progress"}</span>
-<span id="cb4-331"><a href="#cb4-331" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-332"><a href="#cb4-332" aria-hidden="true" tabindex="-1"></a>The 2025-26 scatter shows Los Angeles at the extreme bottom — 0 CR with 90 points,</span>
-<span id="cb4-333"><a href="#cb4-333" aria-hidden="true" tabindex="-1"></a>the most volatile high-points team in the current season. Colorado (121 points,</span>
-<span id="cb4-334"><a href="#cb4-334" aria-hidden="true" tabindex="-1"></a>CR 73) is the Presidents' Trophy leader but sits notably below the most consistent</span>
-<span id="cb4-335"><a href="#cb4-335" aria-hidden="true" tabindex="-1"></a>teams, suggesting they are accumulating points through a more volatile path than</span>
-<span id="cb4-336"><a href="#cb4-336" aria-hidden="true" tabindex="-1"></a>Tampa Bay or Buffalo.</span>
-<span id="cb4-337"><a href="#cb4-337" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-338"><a href="#cb4-338" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-339"><a href="#cb4-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-340"><a href="#cb4-340" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Per-Game Sequence View</span></span>
-<span id="cb4-341"><a href="#cb4-341" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-342"><a href="#cb4-342" aria-hidden="true" tabindex="-1"></a>The grid below shows every team's game-by-game outcome sequence for 2024-25. Each</span>
-<span id="cb4-343"><a href="#cb4-343" aria-hidden="true" tabindex="-1"></a>bar represents one game: height 2 is a win, height 1 is an OT/SO loss, height 0</span>
-<span id="cb4-344"><a href="#cb4-344" aria-hidden="true" tabindex="-1"></a>is a regulation loss. Descent games are highlighted in a lighter shade. Playoff</span>
-<span id="cb4-345"><a href="#cb4-345" aria-hidden="true" tabindex="-1"></a>teams have a green border; the Presidents' Trophy winner (Winnipeg) has a gold</span>
-<span id="cb4-346"><a href="#cb4-346" aria-hidden="true" tabindex="-1"></a>last bar.</span>
-<span id="cb4-347"><a href="#cb4-347" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-348"><a href="#cb4-348" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2024-25: Per-Game Standing Points for All 32 Teams](nhl_sequences_2425.png)</span>{fig-alt="Grid of 32 bar charts showing per-game outcome sequences for all NHL teams in 2024-25"}</span>
-<span id="cb4-349"><a href="#cb4-349" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-350"><a href="#cb4-350" aria-hidden="true" tabindex="-1"></a>Reading these charts side by side makes the difference between consistent and</span>
-<span id="cb4-351"><a href="#cb4-351" aria-hidden="true" tabindex="-1"></a>volatile teams immediately visible. Look at Toronto (top row, second panel) — long</span>
-<span id="cb4-352"><a href="#cb4-352" aria-hidden="true" tabindex="-1"></a>runs of 2-point wins with occasional tight clusters of losses before resuming.</span>
-<span id="cb4-353"><a href="#cb4-353" aria-hidden="true" tabindex="-1"></a>Compare that to Vancouver (bottom row) or Anaheim (bottom row, far right) — far</span>
-<span id="cb4-354"><a href="#cb4-354" aria-hidden="true" tabindex="-1"></a>more alternation between wins and losses throughout the season.</span>
-<span id="cb4-355"><a href="#cb4-355" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-356"><a href="#cb4-356" aria-hidden="true" tabindex="-1"></a>Winnipeg's sequence is also instructive. Their 116-point season came through a</span>
-<span id="cb4-357"><a href="#cb4-357" aria-hidden="true" tabindex="-1"></a>largely dominant run in Western colors, with only a handful of descent clusters</span>
-<span id="cb4-358"><a href="#cb4-358" aria-hidden="true" tabindex="-1"></a>visible. The losses came in small groups; the wins came in long unbroken stretches.</span>
-<span id="cb4-359"><a href="#cb4-359" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-360"><a href="#cb4-360" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-361"><a href="#cb4-361" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-362"><a href="#cb4-362" aria-hidden="true" tabindex="-1"></a><span class="fu">## Testing the Conjecture</span></span>
-<span id="cb4-363"><a href="#cb4-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-364"><a href="#cb4-364" aria-hidden="true" tabindex="-1"></a>With 358 team-seasons in the PDS analysis (full 82-game seasons, COVID excluded),</span>
-<span id="cb4-365"><a href="#cb4-365" aria-hidden="true" tabindex="-1"></a>the correlations are:</span>
-<span id="cb4-366"><a href="#cb4-366" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-367"><a href="#cb4-367" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**CR vs PDS₀: r = 0.158, p = 0.0028 — Significant**</span>
-<span id="cb4-368"><a href="#cb4-368" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Pts vs PDS₀: r = -0.686, p = 0.0000 — Significant**</span>
-<span id="cb4-369"><a href="#cb4-369" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-370"><a href="#cb4-370" aria-hidden="true" tabindex="-1"></a>The CR correlation is positive and significant — more consistent teams do show</span>
-<span id="cb4-371"><a href="#cb4-371" aria-hidden="true" tabindex="-1"></a>higher PDS₀. But the points correlation tells a more nuanced story: better teams</span>
-<span id="cb4-372"><a href="#cb4-372" aria-hidden="true" tabindex="-1"></a>actually show *lower* PDS₀. Higher-points teams recover from losses faster, not</span>
-<span id="cb4-373"><a href="#cb4-373" aria-hidden="true" tabindex="-1"></a>slower.</span>
-<span id="cb4-374"><a href="#cb4-374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-375"><a href="#cb4-375" aria-hidden="true" tabindex="-1"></a><span class="al">![Post-Descent Stickiness Analysis — 2x2 scatter grid and heatmap](nhl_pds_analysis.png)</span>{fig-alt="2x2 grid showing CR vs PDS0, Points vs PDS0, PDS1 vs CR, and average PDS0 by Points x Consistency quartile heatmap"}</span>
-<span id="cb4-376"><a href="#cb4-376" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-377"><a href="#cb4-377" aria-hidden="true" tabindex="-1"></a>The four panels unpack this:</span>
-<span id="cb4-378"><a href="#cb4-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-379"><a href="#cb4-379" aria-hidden="true" tabindex="-1"></a>**Top left (CR vs PDS₀):** A weak but real positive correlation. More consistent</span>
-<span id="cb4-380"><a href="#cb4-380" aria-hidden="true" tabindex="-1"></a>teams have slightly higher PDS₀. The relationship is noisy — individual team-seasons</span>
-<span id="cb4-381"><a href="#cb4-381" aria-hidden="true" tabindex="-1"></a>vary widely — but the trend line slopes upward.</span>
-<span id="cb4-382"><a href="#cb4-382" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-383"><a href="#cb4-383" aria-hidden="true" tabindex="-1"></a>**Top right (Points vs PDS₀):** A much stronger negative correlation. Better teams</span>
-<span id="cb4-384"><a href="#cb4-384" aria-hidden="true" tabindex="-1"></a>have lower PDS₀ — after a regulation loss, they are more likely to bounce back in</span>
-<span id="cb4-385"><a href="#cb4-385" aria-hidden="true" tabindex="-1"></a>the next game. The 2022-23 Boston Bruins (135 points, PDS₀ = 0.091) and 2018-19</span>
-<span id="cb4-386"><a href="#cb4-386" aria-hidden="true" tabindex="-1"></a>Tampa Bay Lightning (128 points, PDS₀ = 0.067) are labeled outliers in the</span>
-<span id="cb4-387"><a href="#cb4-387" aria-hidden="true" tabindex="-1"></a>lower-right — elite teams that almost never followed a regulation loss with another</span>
-<span id="cb4-388"><a href="#cb4-388" aria-hidden="true" tabindex="-1"></a>one.</span>
-<span id="cb4-389"><a href="#cb4-389" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-390"><a href="#cb4-390" aria-hidden="true" tabindex="-1"></a>**Bottom left (CR vs PDS₁):** No meaningful relationship. OTL stickiness is</span>
-<span id="cb4-391"><a href="#cb4-391" aria-hidden="true" tabindex="-1"></a>essentially uncorrelated with consistency (r = 0.015, p = 0.783). OT losses</span>
-<span id="cb4-392"><a href="#cb4-392" aria-hidden="true" tabindex="-1"></a>behave differently from regulation losses in terms of what follows.</span>
-<span id="cb4-393"><a href="#cb4-393" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-394"><a href="#cb4-394" aria-hidden="true" tabindex="-1"></a>**Bottom right (heatmap):** Average PDS₀ by Points × Consistency quartile. The</span>
-<span id="cb4-395"><a href="#cb4-395" aria-hidden="true" tabindex="-1"></a>most important cell is Q4 points / Q4 CR (bottom-right): elite teams that are</span>
-<span id="cb4-396"><a href="#cb4-396" aria-hidden="true" tabindex="-1"></a>also highly consistent show an average PDS₀ of 0.319 — the lowest in the entire</span>
-<span id="cb4-397"><a href="#cb4-397" aria-hidden="true" tabindex="-1"></a>grid. High-CR, low-points teams (Q1 points / Q4 CR, top-right) show 0.581 —</span>
-<span id="cb4-398"><a href="#cb4-398" aria-hidden="true" tabindex="-1"></a>nearly double. The pattern is clear: truly elite teams snap back from losses</span>
-<span id="cb4-399"><a href="#cb4-399" aria-hidden="true" tabindex="-1"></a>quickly, while consistent-but-mediocre teams cluster losses more tightly.</span>
-<span id="cb4-400"><a href="#cb4-400" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-401"><a href="#cb4-401" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-402"><a href="#cb4-402" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-403"><a href="#cb4-403" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Top 16 Most Consistent Team-Seasons</span></span>
-<span id="cb4-404"><a href="#cb4-404" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-405"><a href="#cb4-405" aria-hidden="true" tabindex="-1"></a>The chart below shows the 16 most consistent team-seasons in the 14-season dataset,</span>
-<span id="cb4-406"><a href="#cb4-406" aria-hidden="true" tabindex="-1"></a>ranked by CR. Bar color encodes PDS₀ — red means stickier (losses cluster more),</span>
-<span id="cb4-407"><a href="#cb4-407" aria-hidden="true" tabindex="-1"></a>green means they bounce back faster.</span>
-<span id="cb4-408"><a href="#cb4-408" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-409"><a href="#cb4-409" aria-hidden="true" tabindex="-1"></a><span class="al">![Top 16 Most Consistent NHL Team-Seasons — PDS₀ Deep Dive](nhl_top16_pds.png)</span>{fig-alt="Side-by-side bar chart of top 16 most consistent team-seasons with PDS0 color coding and distribution comparison"}</span>
-<span id="cb4-410"><a href="#cb4-410" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-411"><a href="#cb4-411" aria-hidden="true" tabindex="-1"></a>The distribution panel on the right overlays three groups: all 358 team-seasons</span>
-<span id="cb4-412"><a href="#cb4-412" aria-hidden="true" tabindex="-1"></a>(blue), the high-CR/high-points elite quadrant (green), and the top 16 most</span>
-<span id="cb4-413"><a href="#cb4-413" aria-hidden="true" tabindex="-1"></a>consistent (orange). The elite quadrant mean sits at 0.330, well below the full</span>
-<span id="cb4-414"><a href="#cb4-414" aria-hidden="true" tabindex="-1"></a>dataset mean of 0.387. The top 16 mean is 0.393 — slightly above the dataset</span>
-<span id="cb4-415"><a href="#cb4-415" aria-hidden="true" tabindex="-1"></a>average, but not significantly so (t = 0.193, p = 0.8471).</span>
-<span id="cb4-416"><a href="#cb4-416" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-417"><a href="#cb4-417" aria-hidden="true" tabindex="-1"></a>A few individual team-seasons worth noting: The 2022-23 Boston Bruins (135 points,</span>
-<span id="cb4-418"><a href="#cb4-418" aria-hidden="true" tabindex="-1"></a>PDS₀ = 0.091) and the 2018-19 Tampa Bay Lightning (128 points, PDS₀ = 0.067) are</span>
-<span id="cb4-419"><a href="#cb4-419" aria-hidden="true" tabindex="-1"></a>the two most resilient team-seasons in the dataset — after a regulation loss, they</span>
-<span id="cb4-420"><a href="#cb4-420" aria-hidden="true" tabindex="-1"></a>almost always bounced back immediately. The 2015-16 Edmonton Oilers, by contrast,</span>
-<span id="cb4-421"><a href="#cb4-421" aria-hidden="true" tabindex="-1"></a>finished with just 70 points but showed PDS₀ = 0.765 — after a regulation loss,</span>
-<span id="cb4-422"><a href="#cb4-422" aria-hidden="true" tabindex="-1"></a>there was a 76.5% chance the next game was also a regulation loss. Consistent in</span>
-<span id="cb4-423"><a href="#cb4-423" aria-hidden="true" tabindex="-1"></a>structure, but consistently losing.</span>
-<span id="cb4-424"><a href="#cb4-424" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-425"><a href="#cb4-425" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-426"><a href="#cb4-426" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-427"><a href="#cb4-427" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conjecture Assessment</span></span>
-<span id="cb4-428"><a href="#cb4-428" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-429"><a href="#cb4-429" aria-hidden="true" tabindex="-1"></a>The data supports a modified version of the original conjecture:</span>
-<span id="cb4-430"><a href="#cb4-430" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-431"><a href="#cb4-431" aria-hidden="true" tabindex="-1"></a>**CONJECTURE SUPPORTED: Consistent teams show higher PDS₀** — after descending</span>
-<span id="cb4-432"><a href="#cb4-432" aria-hidden="true" tabindex="-1"></a>to a loss they do tend to cluster losses before snapping back, which is the</span>
-<span id="cb4-433"><a href="#cb4-433" aria-hidden="true" tabindex="-1"></a>mechanism behind their consistency. The CR vs PDS₀ correlation (r = 0.158,</span>
-<span id="cb4-434"><a href="#cb4-434" aria-hidden="true" tabindex="-1"></a>p = 0.003) confirms this directional relationship.</span>
-<span id="cb4-435"><a href="#cb4-435" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-436"><a href="#cb4-436" aria-hidden="true" tabindex="-1"></a>However, the points story tells a different and more important truth: **truly</span>
-<span id="cb4-437"><a href="#cb4-437" aria-hidden="true" tabindex="-1"></a>elite teams have lower PDS₀**, not higher. The best teams in the dataset bounce</span>
-<span id="cb4-438"><a href="#cb4-438" aria-hidden="true" tabindex="-1"></a>back from regulation losses quickly. The combination of high consistency and low</span>
-<span id="cb4-439"><a href="#cb4-439" aria-hidden="true" tabindex="-1"></a>PDS₀ — the hallmark of teams like the 2022-23 Bruins and 2018-19 Lightning —</span>
-<span id="cb4-440"><a href="#cb4-440" aria-hidden="true" tabindex="-1"></a>reflects something more than just loss-clustering. Those teams were consistent</span>
-<span id="cb4-441"><a href="#cb4-441" aria-hidden="true" tabindex="-1"></a>because they almost never had long losing sequences to cluster in the first place.</span>
-<span id="cb4-442"><a href="#cb4-442" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-443"><a href="#cb4-443" aria-hidden="true" tabindex="-1"></a>The more nuanced finding is that **consistency and recovery speed are different</span>
-<span id="cb4-444"><a href="#cb4-444" aria-hidden="true" tabindex="-1"></a>things**, and the most elite teams are distinguished by both. A high-CR team with</span>
-<span id="cb4-445"><a href="#cb4-445" aria-hidden="true" tabindex="-1"></a>high PDS₀ is one that clusters its losses. A high-CR team with low PDS₀ is one</span>
-<span id="cb4-446"><a href="#cb4-446" aria-hidden="true" tabindex="-1"></a>that simply doesn't lose much at all.</span>
-<span id="cb4-447"><a href="#cb4-447" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-448"><a href="#cb4-448" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-449"><a href="#cb4-449" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-450"><a href="#cb4-450" aria-hidden="true" tabindex="-1"></a><span class="fu">## Deep Dive: Winnipeg Jets 2024-25</span></span>
-<span id="cb4-451"><a href="#cb4-451" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-452"><a href="#cb4-452" aria-hidden="true" tabindex="-1"></a>As the Presidents' Trophy winner and second-most-consistent team in the league</span>
-<span id="cb4-453"><a href="#cb4-453" aria-hidden="true" tabindex="-1"></a>(CR 92, 19 descents), the Jets provide a useful case study.</span>
-<span id="cb4-454"><a href="#cb4-454" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-455"><a href="#cb4-455" aria-hidden="true" tabindex="-1"></a><span class="al">![Winnipeg Jets 2024-25 — per-game outcomes with descents highlighted, and cumulative points vs league average pace](nhl_deepdive_WPG_202425.png)</span>{fig-alt="Two-panel chart showing Winnipeg Jets 2024-25 per-game results and cumulative points trajectory"}</span>
-<span id="cb4-456"><a href="#cb4-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-457"><a href="#cb4-457" aria-hidden="true" tabindex="-1"></a>The top panel shows each game as a bar — wins at height 2, OT losses at height 1,</span>
-<span id="cb4-458"><a href="#cb4-458" aria-hidden="true" tabindex="-1"></a>regulation losses at height 0. Descent games are highlighted. With only 19 descents</span>
-<span id="cb4-459"><a href="#cb4-459" aria-hidden="true" tabindex="-1"></a>across 82 games, the Jets had just 19 moments where a result was strictly worse</span>
-<span id="cb4-460"><a href="#cb4-460" aria-hidden="true" tabindex="-1"></a>than the previous game. The loss sequences that do appear are short and quickly</span>
-<span id="cb4-461"><a href="#cb4-461" aria-hidden="true" tabindex="-1"></a>followed by resumption of winning.</span>
-<span id="cb4-462"><a href="#cb4-462" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-463"><a href="#cb4-463" aria-hidden="true" tabindex="-1"></a>The bottom panel shows cumulative points versus league average pace (1.10 points</span>
-<span id="cb4-464"><a href="#cb4-464" aria-hidden="true" tabindex="-1"></a>per game). The Jets track well above the league average line for most of the</span>
-<span id="cb4-465"><a href="#cb4-465" aria-hidden="true" tabindex="-1"></a>season, with the gap widening in the second half. Their 116 points represent a</span>
-<span id="cb4-466"><a href="#cb4-466" aria-hidden="true" tabindex="-1"></a>full 14 points above league average pace across 82 games.</span>
-<span id="cb4-467"><a href="#cb4-467" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-468"><a href="#cb4-468" aria-hidden="true" tabindex="-1"></a>The Jets' PDS₀ of 0.333 sits slightly below the dataset mean of 0.387 — meaning</span>
-<span id="cb4-469"><a href="#cb4-469" aria-hidden="true" tabindex="-1"></a>after a regulation loss, they recovered in the next game about two-thirds of the</span>
-<span id="cb4-470"><a href="#cb4-470" aria-hidden="true" tabindex="-1"></a>time. Combined with their low descent count, this is the signature of an elite,</span>
-<span id="cb4-471"><a href="#cb4-471" aria-hidden="true" tabindex="-1"></a>consistent team: losses are rare, and when they do come, they don't last long.</span>
-<span id="cb4-472"><a href="#cb4-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-473"><a href="#cb4-473" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-474"><a href="#cb4-474" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-475"><a href="#cb4-475" aria-hidden="true" tabindex="-1"></a><span class="fu">## Limitations and Open Questions</span></span>
-<span id="cb4-476"><a href="#cb4-476" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-477"><a href="#cb4-477" aria-hidden="true" tabindex="-1"></a>**PDS is sample-limited at the team level.** A single 82-game season produces</span>
-<span id="cb4-478"><a href="#cb4-478" aria-hidden="true" tabindex="-1"></a>only 15-25 descent-to-zero events for any one team. Individual team PDS estimates</span>
-<span id="cb4-479"><a href="#cb4-479" aria-hidden="true" tabindex="-1"></a>are noisy; the correlation analysis across 450+ team-seasons is more reliable.</span>
-<span id="cb4-480"><a href="#cb4-480" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-481"><a href="#cb4-481" aria-hidden="true" tabindex="-1"></a>**Sequences treat all losses as equivalent.** A regulation loss on a back-to-back</span>
-<span id="cb4-482"><a href="#cb4-482" aria-hidden="true" tabindex="-1"></a>road trip is not the same as one in a playoff push. Weighting by game leverage or</span>
-<span id="cb4-483"><a href="#cb4-483" aria-hidden="true" tabindex="-1"></a>schedule context would be a meaningful extension.</span>
-<span id="cb4-484"><a href="#cb4-484" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-485"><a href="#cb4-485" aria-hidden="true" tabindex="-1"></a>**CR is relative, not absolute.** A CR of 90 tells you where a team ranked in</span>
-<span id="cb4-486"><a href="#cb4-486" aria-hidden="true" tabindex="-1"></a>that year's consistency distribution, not what their absolute volatility level was.</span>
-<span id="cb4-487"><a href="#cb4-487" aria-hidden="true" tabindex="-1"></a>Cross-season comparisons require care.</span>
-<span id="cb4-488"><a href="#cb4-488" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-489"><a href="#cb4-489" aria-hidden="true" tabindex="-1"></a>**The t-test on the top 16 was not significant (p = 0.847).** The directional</span>
-<span id="cb4-490"><a href="#cb4-490" aria-hidden="true" tabindex="-1"></a>finding — that consistent teams show slightly higher PDS₀ — is real but the</span>
-<span id="cb4-491"><a href="#cb4-491" aria-hidden="true" tabindex="-1"></a>effect size is small. The stronger and more significant finding is the negative</span>
-<span id="cb4-492"><a href="#cb4-492" aria-hidden="true" tabindex="-1"></a>correlation between points and PDS₀, which points toward recovery speed as the</span>
-<span id="cb4-493"><a href="#cb4-493" aria-hidden="true" tabindex="-1"></a>more important variable for elite teams.</span>
-<span id="cb4-494"><a href="#cb4-494" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-495"><a href="#cb4-495" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb4-496"><a href="#cb4-496" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-497"><a href="#cb4-497" aria-hidden="true" tabindex="-1"></a><span class="fu">## Full Code</span></span>
-<span id="cb4-498"><a href="#cb4-498" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-499"><a href="#cb4-499" aria-hidden="true" tabindex="-1"></a>The complete notebook — all data fetching, pooled baseline computation,</span>
-<span id="cb4-500"><a href="#cb4-500" aria-hidden="true" tabindex="-1"></a>master dataset construction, CR calculation, PDS analysis, and visualizations</span>
-<span id="cb4-501"><a href="#cb4-501" aria-hidden="true" tabindex="-1"></a>— is in the repo:</span>
-<span id="cb4-502"><a href="#cb4-502" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-503"><a href="#cb4-503" aria-hidden="true" tabindex="-1"></a>👉 <span class="co">[</span><span class="ot">github.com/corsi-isnt-enough/nhl-analytics</span><span class="co">](https://github.com/corsi-isnt-enough/nhl-analytics)</span></span>
-<span id="cb4-504"><a href="#cb4-504" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-505"><a href="#cb4-505" aria-hidden="true" tabindex="-1"></a>Written for Python 3.8+ compatibility. Dependencies: pandas, numpy,</span>
-<span id="cb4-506"><a href="#cb4-506" aria-hidden="true" tabindex="-1"></a>matplotlib, scipy, requests.</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Buddy Galletti"</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [consistency, sequence-analysis, methodology]</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "What if we stopped measuring what teams accumulate and started measuring how they behave? A sequence-based framework for NHL team consistency across 14 seasons."</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> true</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> true</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">  enabled: false</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">## A Different Question</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>Most NHL analytics starts with aggregation. How many goals did a team score?</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>How many shots did they suppress? What was their expected goals percentage?</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>These are useful questions, but they all share the same structure: sum up the</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>season, divide by something, rank the teams.</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>This project starts from a different place. Instead of asking *how much*, it</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>asks *how*.</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>Specifically: **how does a team's performance sequence across 82 games tell us</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>something that the final standings don't?**</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>Two teams can finish with 100 points and look completely different in terms of</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>how they got there. One might reel off wins in long streaks, lose in clusters,</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>and snap back. Another might grind out wins and losses in near-random alternation.</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>Both are 100-point teams. But they are not the same team, and their paths to the</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>playoffs — and through them — will look nothing alike.</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>The framework here introduces three metrics built to capture this: **Descents**,</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>**Consistency Rating (CR)**, and **Post-Descent Stickiness (PDS)**.</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Data Model</span></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>Every NHL game produces exactly one of three standings outcomes for a given team:</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>\text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> \in <span class="sc">\{</span>0, 1, 2<span class="sc">\}</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>Where:</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$2$ = Win (2 points)</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$1$ = OT/SO Loss (1 point)</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$0$ = Regulation Loss (0 points)</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>A full season is a length-82 sequence of these values. The entire analysis</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>operates on these sequences, fetched from the NHL public API's club schedule</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>endpoint:</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a><span class="in">GET https://api-web.nhle.com/v1/club-schedule-season/{abbrev}/{season}</span></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>The dataset covers **14 full 82-game seasons** from 2010-11 through 2024-25,</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>plus the in-progress 2025-26 season. The 2012-13 lockout season (48 games) and</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>the 2019-20 COVID season (shortened, bubble format) are excluded from the pooled</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>baseline but flagged where they appear.</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a><span class="fu">## Descents</span></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>A **descent** is any position $i$ where the team's outcome is strictly worse</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>than the previous game:</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>\text{DESCENTS}(\text{seq}) = \sum_{i=1}^{81} \mathbf{1}<span class="co">[</span><span class="ot">\text{seq}[i] &lt; \text{seq}[i-1]</span><span class="co">]</span></span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>This is a simple count of backward steps in the sequence. A team that wins 10</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>in a row and then loses has one descent. A team that alternates win-loss-win-loss</span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>has roughly 40 descents. The same total point accumulation can produce wildly</span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>different descent counts depending on how results are distributed across the</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>season.</span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Theoretical Baseline</span></span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>For any two adjacent positions in the sequence drawn from $<span class="sc">\{</span>0, 1, 2<span class="sc">\}</span>$, the</span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>probability of a descent depends on the empirical distribution of outcomes.</span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>Letting $p_0$, $p_1$, $p_2$ be the probabilities of each outcome:</span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>P(\text{descent}) = p_0 p_1 + p_0 p_2 + p_1 p_2</span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>Under a uniform distribution ($p_0 = p_1 = p_2 = \frac{1}{3}$):</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>P(\text{descent}) = \frac{1}{3}, \quad E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span> = 81 \times \frac{1}{3} = 27.0</span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>The empirical 2024-25 distribution is not uniform. Wins are the most common outcome</span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>($p_2 = 0.503$), regulation losses are next ($p_0 = 0.383$), and OT/SO losses</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>are the least common ($p_1 = 0.114$). Plugging those values in:</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>P(\text{descent}) = 0.2937, \quad E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span> = 23.79, \quad \sigma = 4.10</span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>This is meaningfully different from the naive uniform assumption of 27.0. Using</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>the empirical baseline is essential — a team with 24 descents looks below average</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>against the uniform baseline but is exactly at the mean under the empirical one.</span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>All z-scores in this analysis use the pooled empirical baseline across 14 seasons.</span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a><span class="fu">### Z-Score and Consistency Rating</span></span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>For each team-season, we compute:</span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>z = \frac{\text{descents} - E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span>}{\sigma_{\text{descents}}}</span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>Where $E<span class="co">[</span><span class="ot">\text{descents}</span><span class="co">]</span>$ and $\sigma$ come from the pooled 14-season baseline.</span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>**Negative z-scores mean fewer descents than expected — more consistent.**</span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>Positive z-scores mean more volatility.</span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>The **Consistency Rating (CR)** rescales this within each season to a 0–100</span>
+<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a>scale for readability:</span>
+<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>\text{CR} = 100 \times \left(1 - \frac{z - z_{\min}}{z_{\max} - z_{\min}}\right)</span>
+<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a>A CR of 100 is the most consistent team in the league that season. A CR of 0</span>
+<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>is the most volatile. The inversion ensures that higher = more consistent.</span>
+<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a><span class="fu">## Post-Descent Stickiness</span></span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a>Descents and CR describe the *frequency* of backward steps. Post-Descent</span>
+<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>Stickiness (PDS) describes what happens *after* a descent, and this is where</span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a>the real conjecture lives.</span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>**PDS at level $k$** is defined as: after descending to outcome $k$, what is</span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a>the probability that the next game also produces outcome $k$?</span>
+<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a>\text{PDS}_k = P\bigl(\text{seq}<span class="co">[</span><span class="ot">i+1</span><span class="co">]</span> = k \;\big|\; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> = k,\; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> &lt; \text{seq}<span class="co">[</span><span class="ot">i-1</span><span class="co">]</span>\bigr)</span>
+<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>In plain terms: given that a team just had a bad result and it was worse than</span>
+<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a>the game before, how likely are they to have the same bad result again?</span>
+<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a>We focus on two variants:</span>
+<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**PDS₀**: After descending to a regulation loss, probability the next game</span>
+<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a>  is also a regulation loss</span>
+<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**PDS₁**: After descending to an OTL, probability the next game is also</span>
+<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a>  an OTL</span>
+<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a>We also track the complementary metric, **Descent Recovery Rate (DRR)**:</span>
+<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a>\text{DRR} = P\bigl(\text{seq}<span class="co">[</span><span class="ot">i+1</span><span class="co">]</span> &gt; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> \;\big|\; \text{seq}<span class="co">[</span><span class="ot">i</span><span class="co">]</span> &lt; \text{seq}<span class="co">[</span><span class="ot">i-1</span><span class="co">]</span>\bigr)</span>
+<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a>The fraction of the time a team genuinely bounces back after any descent.</span>
+<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Conjecture</span></span>
+<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a>The central hypothesis of this work:</span>
+<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **High-consistency, high-points teams have higher PDS₀.** After descending</span></span>
+<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; to a regulation loss, they tend to stay there briefly before snapping back</span></span>
+<span id="cb4-172"><a href="#cb4-172" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; into a win streak. This clustering of losses is precisely the mechanism behind</span></span>
+<span id="cb4-173"><a href="#cb4-173" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; their apparent consistency — they have few descents because their losses are</span></span>
+<span id="cb4-174"><a href="#cb4-174" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; grouped together, not scattered randomly across the season.</span></span>
+<span id="cb4-175"><a href="#cb4-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-176"><a href="#cb4-176" aria-hidden="true" tabindex="-1"></a>This is counterintuitive. It says that elite, consistent teams are *more likely*</span>
+<span id="cb4-177"><a href="#cb4-177" aria-hidden="true" tabindex="-1"></a>to follow a loss with another loss than average teams — not because they are</span>
+<span id="cb4-178"><a href="#cb4-178" aria-hidden="true" tabindex="-1"></a>worse, but because their loss events are structured differently. Volatility, by</span>
+<span id="cb4-179"><a href="#cb4-179" aria-hidden="true" tabindex="-1"></a>contrast, means losses are scattered: every win is followed by a loss, every</span>
+<span id="cb4-180"><a href="#cb4-180" aria-hidden="true" tabindex="-1"></a>loss by a win, producing many descents but no clustering.</span>
+<span id="cb4-181"><a href="#cb4-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-182"><a href="#cb4-182" aria-hidden="true" tabindex="-1"></a>To test this formally, we compute Pearson correlations between PDS₀ and both</span>
+<span id="cb4-183"><a href="#cb4-183" aria-hidden="true" tabindex="-1"></a>CR and total standings points, across all valid team-seasons in the dataset</span>
+<span id="cb4-184"><a href="#cb4-184" aria-hidden="true" tabindex="-1"></a>(full 82-game seasons only, COVID season excluded).</span>
+<span id="cb4-185"><a href="#cb4-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-186"><a href="#cb4-186" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-187"><a href="#cb4-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-188"><a href="#cb4-188" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Data Pipeline</span></span>
+<span id="cb4-189"><a href="#cb4-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-192"><a href="#cb4-192" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb4-193"><a href="#cb4-193" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
+<span id="cb4-194"><a href="#cb4-194" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb4-195"><a href="#cb4-195" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb4-196"><a href="#cb4-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-197"><a href="#cb4-197" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb4-198"><a href="#cb4-198" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb4-199"><a href="#cb4-199" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb4-200"><a href="#cb4-200" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb4-201"><a href="#cb4-201" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.patches <span class="im">as</span> mpatches</span>
+<span id="cb4-202"><a href="#cb4-202" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb4-203"><a href="#cb4-203" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb4-204"><a href="#cb4-204" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb4-205"><a href="#cb4-205" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb4-206"><a href="#cb4-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-207"><a href="#cb4-207" aria-hidden="true" tabindex="-1"></a>BASE_URL    <span class="op">=</span> <span class="st">'https://api-web.nhle.com/v1'</span></span>
+<span id="cb4-208"><a href="#cb4-208" aria-hidden="true" tabindex="-1"></a>SEASON_2425 <span class="op">=</span> <span class="st">'20242025'</span></span>
+<span id="cb4-209"><a href="#cb4-209" aria-hidden="true" tabindex="-1"></a>SEASON_2526 <span class="op">=</span> <span class="st">'20252026'</span></span>
+<span id="cb4-210"><a href="#cb4-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-211"><a href="#cb4-211" aria-hidden="true" tabindex="-1"></a>HISTORICAL_SEASONS <span class="op">=</span> [</span>
+<span id="cb4-212"><a href="#cb4-212" aria-hidden="true" tabindex="-1"></a>    <span class="st">'20102011'</span>,<span class="st">'20112012'</span>,<span class="st">'20132014'</span>,<span class="st">'20142015'</span>,<span class="st">'20152016'</span>,</span>
+<span id="cb4-213"><a href="#cb4-213" aria-hidden="true" tabindex="-1"></a>    <span class="st">'20162017'</span>,<span class="st">'20172018'</span>,<span class="st">'20182019'</span>,<span class="st">'20192020'</span>,<span class="st">'20202021'</span>,</span>
+<span id="cb4-214"><a href="#cb4-214" aria-hidden="true" tabindex="-1"></a>    <span class="st">'20212022'</span>,<span class="st">'20222023'</span>,<span class="st">'20232024'</span>,<span class="st">'20242025'</span></span>
+<span id="cb4-215"><a href="#cb4-215" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb4-216"><a href="#cb4-216" aria-hidden="true" tabindex="-1"></a>COVID_SEASON <span class="op">=</span> <span class="st">'20192020'</span></span>
+<span id="cb4-217"><a href="#cb4-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-218"><a href="#cb4-218" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Setup complete."</span>)</span>
+<span id="cb4-219"><a href="#cb4-219" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Historical seasons: </span><span class="sc">{</span><span class="bu">len</span>(HISTORICAL_SEASONS)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb4-220"><a href="#cb4-220" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-221"><a href="#cb4-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-224"><a href="#cb4-224" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb4-225"><a href="#cb4-225" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
+<span id="cb4-226"><a href="#cb4-226" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb4-227"><a href="#cb4-227" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: core-functions</span></span>
+<span id="cb4-228"><a href="#cb4-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-229"><a href="#cb4-229" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> count_descents(seq):</span>
+<span id="cb4-230"><a href="#cb4-230" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq)) <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb4-231"><a href="#cb4-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-232"><a href="#cb4-232" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> post_descent_stickiness(seq, landed_on<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb4-233"><a href="#cb4-233" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(seq) <span class="op">&lt;</span> <span class="dv">3</span>:</span>
+<span id="cb4-234"><a href="#cb4-234" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb4-235"><a href="#cb4-235" aria-hidden="true" tabindex="-1"></a>    eligible <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">-</span> <span class="dv">1</span>)</span>
+<span id="cb4-236"><a href="#cb4-236" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>] <span class="kw">and</span> seq[i] <span class="op">==</span> landed_on]</span>
+<span id="cb4-237"><a href="#cb4-237" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> eligible:</span>
+<span id="cb4-238"><a href="#cb4-238" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb4-239"><a href="#cb4-239" aria-hidden="true" tabindex="-1"></a>    sticky <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> eligible <span class="cf">if</span> seq[i<span class="op">+</span><span class="dv">1</span>] <span class="op">==</span> landed_on)</span>
+<span id="cb4-240"><a href="#cb4-240" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> sticky <span class="op">/</span> <span class="bu">len</span>(eligible)</span>
+<span id="cb4-241"><a href="#cb4-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-242"><a href="#cb4-242" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> descent_recovery_rate(seq):</span>
+<span id="cb4-243"><a href="#cb4-243" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(seq) <span class="op">&lt;</span> <span class="dv">3</span>:</span>
+<span id="cb4-244"><a href="#cb4-244" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb4-245"><a href="#cb4-245" aria-hidden="true" tabindex="-1"></a>    eligible <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(seq) <span class="op">-</span> <span class="dv">1</span>) <span class="cf">if</span> seq[i] <span class="op">&lt;</span> seq[i<span class="op">-</span><span class="dv">1</span>]]</span>
+<span id="cb4-246"><a href="#cb4-246" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> eligible:</span>
+<span id="cb4-247"><a href="#cb4-247" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb4-248"><a href="#cb4-248" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> eligible <span class="cf">if</span> seq[i<span class="op">+</span><span class="dv">1</span>] <span class="op">&gt;</span> seq[i]) <span class="op">/</span> <span class="bu">len</span>(eligible)</span>
+<span id="cb4-249"><a href="#cb4-249" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-250"><a href="#cb4-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-251"><a href="#cb4-251" aria-hidden="true" tabindex="-1"></a>The three core functions are deceptively simple. <span class="in">`count_descents`</span> is a single</span>
+<span id="cb4-252"><a href="#cb4-252" aria-hidden="true" tabindex="-1"></a>pass. <span class="in">`post_descent_stickiness`</span> finds every eligible position and checks what</span>
+<span id="cb4-253"><a href="#cb4-253" aria-hidden="true" tabindex="-1"></a>came next. <span class="in">`descent_recovery_rate`</span> is the complement: genuine bouncebacks after</span>
+<span id="cb4-254"><a href="#cb4-254" aria-hidden="true" tabindex="-1"></a>any descent.</span>
+<span id="cb4-255"><a href="#cb4-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-256"><a href="#cb4-256" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-257"><a href="#cb4-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-258"><a href="#cb4-258" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results: The 2024-25 Consistency Rankings</span></span>
+<span id="cb4-259"><a href="#cb4-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-260"><a href="#cb4-260" aria-hidden="true" tabindex="-1"></a>The chart below shows every NHL team's descent count for the 2024-25 season,</span>
+<span id="cb4-261"><a href="#cb4-261" aria-hidden="true" tabindex="-1"></a>sorted from fewest descents (most consistent) on the left to most on the right.</span>
+<span id="cb4-262"><a href="#cb4-262" aria-hidden="true" tabindex="-1"></a>The yellow horizontal line marks the empirical expected value of 23.8 descents.</span>
+<span id="cb4-263"><a href="#cb4-263" aria-hidden="true" tabindex="-1"></a>The shaded bands show one and two standard deviations from that baseline.</span>
+<span id="cb4-264"><a href="#cb4-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-265"><a href="#cb4-265" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2024-25: Descent Count vs League-Expected](nhl_descents_2425.png)</span>{fig-alt="Bar chart showing descent count for all 32 NHL teams in 2024-25, sorted from most to least consistent, with expected value line"}</span>
+<span id="cb4-266"><a href="#cb4-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-267"><a href="#cb4-267" aria-hidden="true" tabindex="-1"></a>Toronto leads the league with just 18 descents, a z-score of -1.41 — the most</span>
+<span id="cb4-268"><a href="#cb4-268" aria-hidden="true" tabindex="-1"></a>consistent team in the league that season. Winnipeg (19 descents, z = -1.17) and</span>
+<span id="cb4-269"><a href="#cb4-269" aria-hidden="true" tabindex="-1"></a>Dallas (20 descents, z = -0.92) round out the top three. At the other end,</span>
+<span id="cb4-270"><a href="#cb4-270" aria-hidden="true" tabindex="-1"></a>Vancouver and Anaheim both recorded 30 descents (z = +1.52), making them the</span>
+<span id="cb4-271"><a href="#cb4-271" aria-hidden="true" tabindex="-1"></a>most volatile teams in the league.</span>
+<span id="cb4-272"><a href="#cb4-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-273"><a href="#cb4-273" aria-hidden="true" tabindex="-1"></a>The full 2024-25 standings:</span>
+<span id="cb4-274"><a href="#cb4-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-275"><a href="#cb4-275" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Team <span class="pp">|</span> Points <span class="pp">|</span> Descents <span class="pp">|</span> Z-Score <span class="pp">|</span> CR <span class="pp">|</span> Playoff <span class="pp">|</span></span>
+<span id="cb4-276"><a href="#cb4-276" aria-hidden="true" tabindex="-1"></a><span class="pp">|------|--------|----------|---------|-----|---------|</span></span>
+<span id="cb4-277"><a href="#cb4-277" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Toronto Maple Leafs <span class="pp">|</span> 108 <span class="pp">|</span> 18 <span class="pp">|</span> -1.41 <span class="pp">|</span> 100.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
+<span id="cb4-278"><a href="#cb4-278" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Winnipeg Jets <span class="pp">|</span> 116 <span class="pp">|</span> 19 <span class="pp">|</span> -1.17 <span class="pp">|</span> 91.7 <span class="pp">|</span> Yes (PT) <span class="pp">|</span></span>
+<span id="cb4-279"><a href="#cb4-279" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nashville Predators <span class="pp">|</span> 68 <span class="pp">|</span> 20 <span class="pp">|</span> -0.92 <span class="pp">|</span> 83.3 <span class="pp">|</span> No <span class="pp">|</span></span>
+<span id="cb4-280"><a href="#cb4-280" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Dallas Stars <span class="pp">|</span> 106 <span class="pp">|</span> 20 <span class="pp">|</span> -0.92 <span class="pp">|</span> 83.3 <span class="pp">|</span> Yes <span class="pp">|</span></span>
+<span id="cb4-281"><a href="#cb4-281" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Detroit Red Wings <span class="pp">|</span> 86 <span class="pp">|</span> 20 <span class="pp">|</span> -0.92 <span class="pp">|</span> 83.3 <span class="pp">|</span> No <span class="pp">|</span></span>
+<span id="cb4-282"><a href="#cb4-282" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Vegas Golden Knights <span class="pp">|</span> 110 <span class="pp">|</span> 21 <span class="pp">|</span> -0.68 <span class="pp">|</span> 75.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
+<span id="cb4-283"><a href="#cb4-283" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Edmonton Oilers <span class="pp">|</span> 101 <span class="pp">|</span> 21 <span class="pp">|</span> -0.68 <span class="pp">|</span> 75.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
+<span id="cb4-284"><a href="#cb4-284" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Tampa Bay Lightning <span class="pp">|</span> 102 <span class="pp">|</span> 21 <span class="pp">|</span> -0.68 <span class="pp">|</span> 75.0 <span class="pp">|</span> Yes <span class="pp">|</span></span>
+<span id="cb4-285"><a href="#cb4-285" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ottawa Senators <span class="pp">|</span> 97 <span class="pp">|</span> 22 <span class="pp">|</span> -0.44 <span class="pp">|</span> 66.7 <span class="pp">|</span> Yes <span class="pp">|</span></span>
+<span id="cb4-286"><a href="#cb4-286" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Buffalo Sabres <span class="pp">|</span> 79 <span class="pp">|</span> 22 <span class="pp">|</span> -0.44 <span class="pp">|</span> 66.7 <span class="pp">|</span> No <span class="pp">|</span></span>
+<span id="cb4-287"><a href="#cb4-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-288"><a href="#cb4-288" aria-hidden="true" tabindex="-1"></a>A few things stand out immediately. Nashville finished with just 68 points but</span>
+<span id="cb4-289"><a href="#cb4-289" aria-hidden="true" tabindex="-1"></a>ranks third in consistency — they lost a lot, but they lost in clusters rather</span>
+<span id="cb4-290"><a href="#cb4-290" aria-hidden="true" tabindex="-1"></a>than alternating wins and losses randomly. Detroit shows a similar pattern: 86</span>
+<span id="cb4-291"><a href="#cb4-291" aria-hidden="true" tabindex="-1"></a>points and a CR of 83, suggesting a team that was more structured in how it</span>
+<span id="cb4-292"><a href="#cb4-292" aria-hidden="true" tabindex="-1"></a>played through adversity than their standings position implies.</span>
+<span id="cb4-293"><a href="#cb4-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-294"><a href="#cb4-294" aria-hidden="true" tabindex="-1"></a>Toronto is the most interesting case. With 108 points and a CR of 100, they are</span>
+<span id="cb4-295"><a href="#cb4-295" aria-hidden="true" tabindex="-1"></a>the rare team that is both elite and maximally consistent. Most high-point teams</span>
+<span id="cb4-296"><a href="#cb4-296" aria-hidden="true" tabindex="-1"></a>show moderate to high consistency, but Toronto's 18 descents is genuinely</span>
+<span id="cb4-297"><a href="#cb4-297" aria-hidden="true" tabindex="-1"></a>exceptional.</span>
+<span id="cb4-298"><a href="#cb4-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-299"><a href="#cb4-299" aria-hidden="true" tabindex="-1"></a>The scatter plot below shows the full relationship between points and CR across</span>
+<span id="cb4-300"><a href="#cb4-300" aria-hidden="true" tabindex="-1"></a>all 32 teams in 2024-25.</span>
+<span id="cb4-301"><a href="#cb4-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-302"><a href="#cb4-302" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2024-25: Points vs Consistency Rating](nhl_scatter_2425.png)</span>{fig-alt="Scatter plot of season standings points vs consistency rating for all 32 NHL teams in 2024-25, colored by conference"}</span>
+<span id="cb4-303"><a href="#cb4-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-304"><a href="#cb4-304" aria-hidden="true" tabindex="-1"></a>The chart plots points on the x-axis and CR on the y-axis. Large circles are</span>
+<span id="cb4-305"><a href="#cb4-305" aria-hidden="true" tabindex="-1"></a>playoff teams, small squares are non-playoff. The dashed lines sit at the median</span>
+<span id="cb4-306"><a href="#cb4-306" aria-hidden="true" tabindex="-1"></a>for each axis, dividing the chart into four quadrants.</span>
+<span id="cb4-307"><a href="#cb4-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-308"><a href="#cb4-308" aria-hidden="true" tabindex="-1"></a>The upper-right quadrant — high points, high consistency — contains most of the</span>
+<span id="cb4-309"><a href="#cb4-309" aria-hidden="true" tabindex="-1"></a>elite teams: Toronto, Winnipeg, Dallas, Vegas, Tampa Bay, Edmonton, and Ottawa</span>
+<span id="cb4-310"><a href="#cb4-310" aria-hidden="true" tabindex="-1"></a>all sit there. This confirms that the best teams tend to be more consistent, but</span>
+<span id="cb4-311"><a href="#cb4-311" aria-hidden="true" tabindex="-1"></a>the relationship is not tight. Washington (111 points, CR 58) and Vancouver</span>
+<span id="cb4-312"><a href="#cb4-312" aria-hidden="true" tabindex="-1"></a>(90 points, CR 0) both sit in the high-points/volatile half, showing that</span>
+<span id="cb4-313"><a href="#cb4-313" aria-hidden="true" tabindex="-1"></a>sustained winning is possible through volatile paths too.</span>
+<span id="cb4-314"><a href="#cb4-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-315"><a href="#cb4-315" aria-hidden="true" tabindex="-1"></a>The upper-left quadrant contains the most analytically interesting teams:</span>
+<span id="cb4-316"><a href="#cb4-316" aria-hidden="true" tabindex="-1"></a>Nashville (68 points, CR 83) and Detroit (86 points, CR 83). These are teams</span>
+<span id="cb4-317"><a href="#cb4-317" aria-hidden="true" tabindex="-1"></a>that were far more consistent in their game-to-game behavior than their final</span>
+<span id="cb4-318"><a href="#cb4-318" aria-hidden="true" tabindex="-1"></a>standings suggest. They lost, but they lost in a structured way.</span>
+<span id="cb4-319"><a href="#cb4-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-320"><a href="#cb4-320" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-321"><a href="#cb4-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-322"><a href="#cb4-322" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results: The 2025-26 Season (In Progress)</span></span>
+<span id="cb4-323"><a href="#cb4-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-324"><a href="#cb4-324" aria-hidden="true" tabindex="-1"></a>The same framework applied to the in-progress 2025-26 season shows a different</span>
+<span id="cb4-325"><a href="#cb4-325" aria-hidden="true" tabindex="-1"></a>landscape. Colorado leads the Presidents' Trophy race with 121 points and a CR</span>
+<span id="cb4-326"><a href="#cb4-326" aria-hidden="true" tabindex="-1"></a>of 73. Tampa Bay leads the consistency rankings with 18 descents (CR 100),</span>
+<span id="cb4-327"><a href="#cb4-327" aria-hidden="true" tabindex="-1"></a>followed by Buffalo (19 descents, CR 91) and Dallas (20 descents, CR 82).</span>
+<span id="cb4-328"><a href="#cb4-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-329"><a href="#cb4-329" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2025-26: Descent Count vs League-Expected](nhl_descents_2526.png)</span>{fig-alt="Bar chart showing descent count for all 32 NHL teams in 2025-26 season in progress"}</span>
+<span id="cb4-330"><a href="#cb4-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-331"><a href="#cb4-331" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2025-26: Points vs Consistency Rating](nhl_scatter_2526.png)</span>{fig-alt="Scatter plot of season standings points vs consistency rating for all 32 NHL teams in 2025-26 in progress"}</span>
+<span id="cb4-332"><a href="#cb4-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-333"><a href="#cb4-333" aria-hidden="true" tabindex="-1"></a>The 2025-26 scatter shows Los Angeles at the extreme bottom — 0 CR with 90 points,</span>
+<span id="cb4-334"><a href="#cb4-334" aria-hidden="true" tabindex="-1"></a>the most volatile high-points team in the current season. Colorado (121 points,</span>
+<span id="cb4-335"><a href="#cb4-335" aria-hidden="true" tabindex="-1"></a>CR 73) is the Presidents' Trophy leader but sits notably below the most consistent</span>
+<span id="cb4-336"><a href="#cb4-336" aria-hidden="true" tabindex="-1"></a>teams, suggesting they are accumulating points through a more volatile path than</span>
+<span id="cb4-337"><a href="#cb4-337" aria-hidden="true" tabindex="-1"></a>Tampa Bay or Buffalo.</span>
+<span id="cb4-338"><a href="#cb4-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-339"><a href="#cb4-339" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-340"><a href="#cb4-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-341"><a href="#cb4-341" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Per-Game Sequence View</span></span>
+<span id="cb4-342"><a href="#cb4-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-343"><a href="#cb4-343" aria-hidden="true" tabindex="-1"></a>The grid below shows every team's game-by-game outcome sequence for 2024-25. Each</span>
+<span id="cb4-344"><a href="#cb4-344" aria-hidden="true" tabindex="-1"></a>bar represents one game: height 2 is a win, height 1 is an OT/SO loss, height 0</span>
+<span id="cb4-345"><a href="#cb4-345" aria-hidden="true" tabindex="-1"></a>is a regulation loss. Descent games are highlighted in a lighter shade. Playoff</span>
+<span id="cb4-346"><a href="#cb4-346" aria-hidden="true" tabindex="-1"></a>teams have a green border; the Presidents' Trophy winner (Winnipeg) has a gold</span>
+<span id="cb4-347"><a href="#cb4-347" aria-hidden="true" tabindex="-1"></a>last bar.</span>
+<span id="cb4-348"><a href="#cb4-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-349"><a href="#cb4-349" aria-hidden="true" tabindex="-1"></a><span class="al">![NHL 2024-25: Per-Game Standing Points for All 32 Teams](nhl_sequences_2425.png)</span>{fig-alt="Grid of 32 bar charts showing per-game outcome sequences for all NHL teams in 2024-25"}</span>
+<span id="cb4-350"><a href="#cb4-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-351"><a href="#cb4-351" aria-hidden="true" tabindex="-1"></a>Reading these charts side by side makes the difference between consistent and</span>
+<span id="cb4-352"><a href="#cb4-352" aria-hidden="true" tabindex="-1"></a>volatile teams immediately visible. Look at Toronto (top row, second panel) — long</span>
+<span id="cb4-353"><a href="#cb4-353" aria-hidden="true" tabindex="-1"></a>runs of 2-point wins with occasional tight clusters of losses before resuming.</span>
+<span id="cb4-354"><a href="#cb4-354" aria-hidden="true" tabindex="-1"></a>Compare that to Vancouver (bottom row) or Anaheim (bottom row, far right) — far</span>
+<span id="cb4-355"><a href="#cb4-355" aria-hidden="true" tabindex="-1"></a>more alternation between wins and losses throughout the season.</span>
+<span id="cb4-356"><a href="#cb4-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-357"><a href="#cb4-357" aria-hidden="true" tabindex="-1"></a>Winnipeg's sequence is also instructive. Their 116-point season came through a</span>
+<span id="cb4-358"><a href="#cb4-358" aria-hidden="true" tabindex="-1"></a>largely dominant run in Western colors, with only a handful of descent clusters</span>
+<span id="cb4-359"><a href="#cb4-359" aria-hidden="true" tabindex="-1"></a>visible. The losses came in small groups; the wins came in long unbroken stretches.</span>
+<span id="cb4-360"><a href="#cb4-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-361"><a href="#cb4-361" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-362"><a href="#cb4-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-363"><a href="#cb4-363" aria-hidden="true" tabindex="-1"></a><span class="fu">## Testing the Conjecture</span></span>
+<span id="cb4-364"><a href="#cb4-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-365"><a href="#cb4-365" aria-hidden="true" tabindex="-1"></a>With 358 team-seasons in the PDS analysis (full 82-game seasons, COVID excluded),</span>
+<span id="cb4-366"><a href="#cb4-366" aria-hidden="true" tabindex="-1"></a>the correlations are:</span>
+<span id="cb4-367"><a href="#cb4-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-368"><a href="#cb4-368" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**CR vs PDS₀: r = 0.158, p = 0.0028 — Significant**</span>
+<span id="cb4-369"><a href="#cb4-369" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Pts vs PDS₀: r = -0.686, p = 0.0000 — Significant**</span>
+<span id="cb4-370"><a href="#cb4-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-371"><a href="#cb4-371" aria-hidden="true" tabindex="-1"></a>The CR correlation is positive and significant — more consistent teams do show</span>
+<span id="cb4-372"><a href="#cb4-372" aria-hidden="true" tabindex="-1"></a>higher PDS₀. But the points correlation tells a more nuanced story: better teams</span>
+<span id="cb4-373"><a href="#cb4-373" aria-hidden="true" tabindex="-1"></a>actually show *lower* PDS₀. Higher-points teams recover from losses faster, not</span>
+<span id="cb4-374"><a href="#cb4-374" aria-hidden="true" tabindex="-1"></a>slower.</span>
+<span id="cb4-375"><a href="#cb4-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-376"><a href="#cb4-376" aria-hidden="true" tabindex="-1"></a><span class="al">![Post-Descent Stickiness Analysis — 2x2 scatter grid and heatmap](nhl_pds_analysis.png)</span>{fig-alt="2x2 grid showing CR vs PDS0, Points vs PDS0, PDS1 vs CR, and average PDS0 by Points x Consistency quartile heatmap"}</span>
+<span id="cb4-377"><a href="#cb4-377" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-378"><a href="#cb4-378" aria-hidden="true" tabindex="-1"></a>The four panels unpack this:</span>
+<span id="cb4-379"><a href="#cb4-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-380"><a href="#cb4-380" aria-hidden="true" tabindex="-1"></a>**Top left (CR vs PDS₀):** A weak but real positive correlation. More consistent</span>
+<span id="cb4-381"><a href="#cb4-381" aria-hidden="true" tabindex="-1"></a>teams have slightly higher PDS₀. The relationship is noisy — individual team-seasons</span>
+<span id="cb4-382"><a href="#cb4-382" aria-hidden="true" tabindex="-1"></a>vary widely — but the trend line slopes upward.</span>
+<span id="cb4-383"><a href="#cb4-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-384"><a href="#cb4-384" aria-hidden="true" tabindex="-1"></a>**Top right (Points vs PDS₀):** A much stronger negative correlation. Better teams</span>
+<span id="cb4-385"><a href="#cb4-385" aria-hidden="true" tabindex="-1"></a>have lower PDS₀ — after a regulation loss, they are more likely to bounce back in</span>
+<span id="cb4-386"><a href="#cb4-386" aria-hidden="true" tabindex="-1"></a>the next game. The 2022-23 Boston Bruins (135 points, PDS₀ = 0.091) and 2018-19</span>
+<span id="cb4-387"><a href="#cb4-387" aria-hidden="true" tabindex="-1"></a>Tampa Bay Lightning (128 points, PDS₀ = 0.067) are labeled outliers in the</span>
+<span id="cb4-388"><a href="#cb4-388" aria-hidden="true" tabindex="-1"></a>lower-right — elite teams that almost never followed a regulation loss with another</span>
+<span id="cb4-389"><a href="#cb4-389" aria-hidden="true" tabindex="-1"></a>one.</span>
+<span id="cb4-390"><a href="#cb4-390" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-391"><a href="#cb4-391" aria-hidden="true" tabindex="-1"></a>**Bottom left (CR vs PDS₁):** No meaningful relationship. OTL stickiness is</span>
+<span id="cb4-392"><a href="#cb4-392" aria-hidden="true" tabindex="-1"></a>essentially uncorrelated with consistency (r = 0.015, p = 0.783). OT losses</span>
+<span id="cb4-393"><a href="#cb4-393" aria-hidden="true" tabindex="-1"></a>behave differently from regulation losses in terms of what follows.</span>
+<span id="cb4-394"><a href="#cb4-394" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-395"><a href="#cb4-395" aria-hidden="true" tabindex="-1"></a>**Bottom right (heatmap):** Average PDS₀ by Points × Consistency quartile. The</span>
+<span id="cb4-396"><a href="#cb4-396" aria-hidden="true" tabindex="-1"></a>most important cell is Q4 points / Q4 CR (bottom-right): elite teams that are</span>
+<span id="cb4-397"><a href="#cb4-397" aria-hidden="true" tabindex="-1"></a>also highly consistent show an average PDS₀ of 0.319 — the lowest in the entire</span>
+<span id="cb4-398"><a href="#cb4-398" aria-hidden="true" tabindex="-1"></a>grid. High-CR, low-points teams (Q1 points / Q4 CR, top-right) show 0.581 —</span>
+<span id="cb4-399"><a href="#cb4-399" aria-hidden="true" tabindex="-1"></a>nearly double. The pattern is clear: truly elite teams snap back from losses</span>
+<span id="cb4-400"><a href="#cb4-400" aria-hidden="true" tabindex="-1"></a>quickly, while consistent-but-mediocre teams cluster losses more tightly.</span>
+<span id="cb4-401"><a href="#cb4-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-402"><a href="#cb4-402" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-403"><a href="#cb4-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-404"><a href="#cb4-404" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Top 16 Most Consistent Team-Seasons</span></span>
+<span id="cb4-405"><a href="#cb4-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-406"><a href="#cb4-406" aria-hidden="true" tabindex="-1"></a>The chart below shows the 16 most consistent team-seasons in the 14-season dataset,</span>
+<span id="cb4-407"><a href="#cb4-407" aria-hidden="true" tabindex="-1"></a>ranked by CR. Bar color encodes PDS₀ — red means stickier (losses cluster more),</span>
+<span id="cb4-408"><a href="#cb4-408" aria-hidden="true" tabindex="-1"></a>green means they bounce back faster.</span>
+<span id="cb4-409"><a href="#cb4-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-410"><a href="#cb4-410" aria-hidden="true" tabindex="-1"></a><span class="al">![Top 16 Most Consistent NHL Team-Seasons — PDS₀ Deep Dive](nhl_top16_pds.png)</span>{fig-alt="Side-by-side bar chart of top 16 most consistent team-seasons with PDS0 color coding and distribution comparison"}</span>
+<span id="cb4-411"><a href="#cb4-411" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-412"><a href="#cb4-412" aria-hidden="true" tabindex="-1"></a>The distribution panel on the right overlays three groups: all 358 team-seasons</span>
+<span id="cb4-413"><a href="#cb4-413" aria-hidden="true" tabindex="-1"></a>(blue), the high-CR/high-points elite quadrant (green), and the top 16 most</span>
+<span id="cb4-414"><a href="#cb4-414" aria-hidden="true" tabindex="-1"></a>consistent (orange). The elite quadrant mean sits at 0.330, well below the full</span>
+<span id="cb4-415"><a href="#cb4-415" aria-hidden="true" tabindex="-1"></a>dataset mean of 0.387. The top 16 mean is 0.393 — slightly above the dataset</span>
+<span id="cb4-416"><a href="#cb4-416" aria-hidden="true" tabindex="-1"></a>average, but not significantly so (t = 0.193, p = 0.8471).</span>
+<span id="cb4-417"><a href="#cb4-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-418"><a href="#cb4-418" aria-hidden="true" tabindex="-1"></a>A few individual team-seasons worth noting: The 2022-23 Boston Bruins (135 points,</span>
+<span id="cb4-419"><a href="#cb4-419" aria-hidden="true" tabindex="-1"></a>PDS₀ = 0.091) and the 2018-19 Tampa Bay Lightning (128 points, PDS₀ = 0.067) are</span>
+<span id="cb4-420"><a href="#cb4-420" aria-hidden="true" tabindex="-1"></a>the two most resilient team-seasons in the dataset — after a regulation loss, they</span>
+<span id="cb4-421"><a href="#cb4-421" aria-hidden="true" tabindex="-1"></a>almost always bounced back immediately. The 2015-16 Edmonton Oilers, by contrast,</span>
+<span id="cb4-422"><a href="#cb4-422" aria-hidden="true" tabindex="-1"></a>finished with just 70 points but showed PDS₀ = 0.765 — after a regulation loss,</span>
+<span id="cb4-423"><a href="#cb4-423" aria-hidden="true" tabindex="-1"></a>there was a 76.5% chance the next game was also a regulation loss. Consistent in</span>
+<span id="cb4-424"><a href="#cb4-424" aria-hidden="true" tabindex="-1"></a>structure, but consistently losing.</span>
+<span id="cb4-425"><a href="#cb4-425" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-426"><a href="#cb4-426" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-427"><a href="#cb4-427" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-428"><a href="#cb4-428" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conjecture Assessment</span></span>
+<span id="cb4-429"><a href="#cb4-429" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-430"><a href="#cb4-430" aria-hidden="true" tabindex="-1"></a>The data supports a modified version of the original conjecture:</span>
+<span id="cb4-431"><a href="#cb4-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-432"><a href="#cb4-432" aria-hidden="true" tabindex="-1"></a>**CONJECTURE SUPPORTED: Consistent teams show higher PDS₀** — after descending</span>
+<span id="cb4-433"><a href="#cb4-433" aria-hidden="true" tabindex="-1"></a>to a loss they do tend to cluster losses before snapping back, which is the</span>
+<span id="cb4-434"><a href="#cb4-434" aria-hidden="true" tabindex="-1"></a>mechanism behind their consistency. The CR vs PDS₀ correlation (r = 0.158,</span>
+<span id="cb4-435"><a href="#cb4-435" aria-hidden="true" tabindex="-1"></a>p = 0.003) confirms this directional relationship.</span>
+<span id="cb4-436"><a href="#cb4-436" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-437"><a href="#cb4-437" aria-hidden="true" tabindex="-1"></a>However, the points story tells a different and more important truth: **truly</span>
+<span id="cb4-438"><a href="#cb4-438" aria-hidden="true" tabindex="-1"></a>elite teams have lower PDS₀**, not higher. The best teams in the dataset bounce</span>
+<span id="cb4-439"><a href="#cb4-439" aria-hidden="true" tabindex="-1"></a>back from regulation losses quickly. The combination of high consistency and low</span>
+<span id="cb4-440"><a href="#cb4-440" aria-hidden="true" tabindex="-1"></a>PDS₀ — the hallmark of teams like the 2022-23 Bruins and 2018-19 Lightning —</span>
+<span id="cb4-441"><a href="#cb4-441" aria-hidden="true" tabindex="-1"></a>reflects something more than just loss-clustering. Those teams were consistent</span>
+<span id="cb4-442"><a href="#cb4-442" aria-hidden="true" tabindex="-1"></a>because they almost never had long losing sequences to cluster in the first place.</span>
+<span id="cb4-443"><a href="#cb4-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-444"><a href="#cb4-444" aria-hidden="true" tabindex="-1"></a>The more nuanced finding is that **consistency and recovery speed are different</span>
+<span id="cb4-445"><a href="#cb4-445" aria-hidden="true" tabindex="-1"></a>things**, and the most elite teams are distinguished by both. A high-CR team with</span>
+<span id="cb4-446"><a href="#cb4-446" aria-hidden="true" tabindex="-1"></a>high PDS₀ is one that clusters its losses. A high-CR team with low PDS₀ is one</span>
+<span id="cb4-447"><a href="#cb4-447" aria-hidden="true" tabindex="-1"></a>that simply doesn't lose much at all.</span>
+<span id="cb4-448"><a href="#cb4-448" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-449"><a href="#cb4-449" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-450"><a href="#cb4-450" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-451"><a href="#cb4-451" aria-hidden="true" tabindex="-1"></a><span class="fu">## Deep Dive: Winnipeg Jets 2024-25</span></span>
+<span id="cb4-452"><a href="#cb4-452" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-453"><a href="#cb4-453" aria-hidden="true" tabindex="-1"></a>As the Presidents' Trophy winner and second-most-consistent team in the league</span>
+<span id="cb4-454"><a href="#cb4-454" aria-hidden="true" tabindex="-1"></a>(CR 92, 19 descents), the Jets provide a useful case study.</span>
+<span id="cb4-455"><a href="#cb4-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-456"><a href="#cb4-456" aria-hidden="true" tabindex="-1"></a><span class="al">![Winnipeg Jets 2024-25 — per-game outcomes with descents highlighted, and cumulative points vs league average pace](nhl_deepdive_WPG_202425.png)</span>{fig-alt="Two-panel chart showing Winnipeg Jets 2024-25 per-game results and cumulative points trajectory"}</span>
+<span id="cb4-457"><a href="#cb4-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-458"><a href="#cb4-458" aria-hidden="true" tabindex="-1"></a>The top panel shows each game as a bar — wins at height 2, OT losses at height 1,</span>
+<span id="cb4-459"><a href="#cb4-459" aria-hidden="true" tabindex="-1"></a>regulation losses at height 0. Descent games are highlighted. With only 19 descents</span>
+<span id="cb4-460"><a href="#cb4-460" aria-hidden="true" tabindex="-1"></a>across 82 games, the Jets had just 19 moments where a result was strictly worse</span>
+<span id="cb4-461"><a href="#cb4-461" aria-hidden="true" tabindex="-1"></a>than the previous game. The loss sequences that do appear are short and quickly</span>
+<span id="cb4-462"><a href="#cb4-462" aria-hidden="true" tabindex="-1"></a>followed by resumption of winning.</span>
+<span id="cb4-463"><a href="#cb4-463" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-464"><a href="#cb4-464" aria-hidden="true" tabindex="-1"></a>The bottom panel shows cumulative points versus league average pace (1.10 points</span>
+<span id="cb4-465"><a href="#cb4-465" aria-hidden="true" tabindex="-1"></a>per game). The Jets track well above the league average line for most of the</span>
+<span id="cb4-466"><a href="#cb4-466" aria-hidden="true" tabindex="-1"></a>season, with the gap widening in the second half. Their 116 points represent a</span>
+<span id="cb4-467"><a href="#cb4-467" aria-hidden="true" tabindex="-1"></a>full 14 points above league average pace across 82 games.</span>
+<span id="cb4-468"><a href="#cb4-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-469"><a href="#cb4-469" aria-hidden="true" tabindex="-1"></a>The Jets' PDS₀ of 0.333 sits slightly below the dataset mean of 0.387 — meaning</span>
+<span id="cb4-470"><a href="#cb4-470" aria-hidden="true" tabindex="-1"></a>after a regulation loss, they recovered in the next game about two-thirds of the</span>
+<span id="cb4-471"><a href="#cb4-471" aria-hidden="true" tabindex="-1"></a>time. Combined with their low descent count, this is the signature of an elite,</span>
+<span id="cb4-472"><a href="#cb4-472" aria-hidden="true" tabindex="-1"></a>consistent team: losses are rare, and when they do come, they don't last long.</span>
+<span id="cb4-473"><a href="#cb4-473" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-474"><a href="#cb4-474" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-475"><a href="#cb4-475" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-476"><a href="#cb4-476" aria-hidden="true" tabindex="-1"></a><span class="fu">## Limitations and Open Questions</span></span>
+<span id="cb4-477"><a href="#cb4-477" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-478"><a href="#cb4-478" aria-hidden="true" tabindex="-1"></a>**PDS is sample-limited at the team level.** A single 82-game season produces</span>
+<span id="cb4-479"><a href="#cb4-479" aria-hidden="true" tabindex="-1"></a>only 15-25 descent-to-zero events for any one team. Individual team PDS estimates</span>
+<span id="cb4-480"><a href="#cb4-480" aria-hidden="true" tabindex="-1"></a>are noisy; the correlation analysis across 450+ team-seasons is more reliable.</span>
+<span id="cb4-481"><a href="#cb4-481" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-482"><a href="#cb4-482" aria-hidden="true" tabindex="-1"></a>**Sequences treat all losses as equivalent.** A regulation loss on a back-to-back</span>
+<span id="cb4-483"><a href="#cb4-483" aria-hidden="true" tabindex="-1"></a>road trip is not the same as one in a playoff push. Weighting by game leverage or</span>
+<span id="cb4-484"><a href="#cb4-484" aria-hidden="true" tabindex="-1"></a>schedule context would be a meaningful extension.</span>
+<span id="cb4-485"><a href="#cb4-485" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-486"><a href="#cb4-486" aria-hidden="true" tabindex="-1"></a>**CR is relative, not absolute.** A CR of 90 tells you where a team ranked in</span>
+<span id="cb4-487"><a href="#cb4-487" aria-hidden="true" tabindex="-1"></a>that year's consistency distribution, not what their absolute volatility level was.</span>
+<span id="cb4-488"><a href="#cb4-488" aria-hidden="true" tabindex="-1"></a>Cross-season comparisons require care.</span>
+<span id="cb4-489"><a href="#cb4-489" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-490"><a href="#cb4-490" aria-hidden="true" tabindex="-1"></a>**The t-test on the top 16 was not significant (p = 0.847).** The directional</span>
+<span id="cb4-491"><a href="#cb4-491" aria-hidden="true" tabindex="-1"></a>finding — that consistent teams show slightly higher PDS₀ — is real but the</span>
+<span id="cb4-492"><a href="#cb4-492" aria-hidden="true" tabindex="-1"></a>effect size is small. The stronger and more significant finding is the negative</span>
+<span id="cb4-493"><a href="#cb4-493" aria-hidden="true" tabindex="-1"></a>correlation between points and PDS₀, which points toward recovery speed as the</span>
+<span id="cb4-494"><a href="#cb4-494" aria-hidden="true" tabindex="-1"></a>more important variable for elite teams.</span>
+<span id="cb4-495"><a href="#cb4-495" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-496"><a href="#cb4-496" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb4-497"><a href="#cb4-497" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-498"><a href="#cb4-498" aria-hidden="true" tabindex="-1"></a><span class="fu">## Full Code</span></span>
+<span id="cb4-499"><a href="#cb4-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-500"><a href="#cb4-500" aria-hidden="true" tabindex="-1"></a>The complete notebook — all data fetching, pooled baseline computation,</span>
+<span id="cb4-501"><a href="#cb4-501" aria-hidden="true" tabindex="-1"></a>master dataset construction, CR calculation, PDS analysis, and visualizations</span>
+<span id="cb4-502"><a href="#cb4-502" aria-hidden="true" tabindex="-1"></a>— is in the repo:</span>
+<span id="cb4-503"><a href="#cb4-503" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-504"><a href="#cb4-504" aria-hidden="true" tabindex="-1"></a>👉 <span class="co">[</span><span class="ot">github.com/corsi-isnt-enough/nhl-analytics</span><span class="co">](https://github.com/corsi-isnt-enough/nhl-analytics)</span></span>
+<span id="cb4-505"><a href="#cb4-505" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-506"><a href="#cb4-506" aria-hidden="true" tabindex="-1"></a>Written for Python 3.8+ compatibility. Dependencies: pandas, numpy,</span>
+<span id="cb4-507"><a href="#cb4-507" aria-hidden="true" tabindex="-1"></a>matplotlib, scipy, requests.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

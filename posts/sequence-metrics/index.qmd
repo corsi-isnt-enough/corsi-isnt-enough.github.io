@@ -1,6 +1,7 @@
 ---
 title: "Descents, Consistency, and Post-Descent Stickiness"
 date: 2025-06-04
+author: "Buddy Galletti"
 categories: [consistency, sequence-analysis, methodology]
 description: "What if we stopped measuring what teams accumulate and started measuring how they behave? A sequence-based framework for NHL team consistency across 14 seasons."
 toc: true
