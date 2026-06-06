@@ -1,5 +1,5 @@
 ---
-title: "Corsi Isn't Enough: A History of NHL Analytics (2007–Present)"
+title: "A Brief History of NHL Analytics (2007–Present)"
 date: "2026-06-06"
 author: "Corsi Isn't Enough"
 categories: [analytics, history, corsi, xG, WAR, tracking, methodology]
