@@ -4,6 +4,7 @@ project:
 
 website:
   title: "Corsi Isn't Enough"
+  google-analytics: 'G-B7SGED13J4'
   description: 'NHL analytics beyond the surface — per-60 metrics, score-state stratification, and the math underneath the game.'
   navbar:
     left:
